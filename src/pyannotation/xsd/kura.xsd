@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.ats.lmu.de/kura/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:kura="http://www.ats.lmu.de/kura/">
+  <xs:import namespace="http://www.w3.org/2001/XMLSchema-instance" schemaLocation="xsixsd"/>
+  <xs:element name="interlinear-text">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="kura:item"/>
+        <xs:element ref="kura:phrases"/>
+      </xs:sequence>
+      <xs:attribute ref="xsi:schemaLocation" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="phrases">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="kura:phrase"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="phrase">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="kura:item"/>
+        <xs:element ref="kura:words"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="words">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="kura:word"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="word">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="kura:item"/>
+        <xs:element ref="kura:morphemes"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="morphemes">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="kura:morph"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="morph">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="kura:item"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="item">
+    <xs:complexType mixed="true">
+      <xs:attribute name="full"/>
+      <xs:attribute name="type" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

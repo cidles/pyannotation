@@ -1,0 +1,14 @@
+README
+setup.py
+src/pyannotation/__init__.py
+src/pyannotation/ag/__init__.py
+src/pyannotation/ag/dbmodel.py
+src/pyannotation/elan/__init__.py
+src/pyannotation/elan/converter.py
+src/pyannotation/elan/data.py
+src/pyannotation/kura/__init__.py
+src/pyannotation/kura/converter.py
+src/pyannotation/xsd/kura.xsd
+src/pyannotation/xsl/elan2ag.xsl
+src/pyannotation/xsl/kura2htmllgr.xsl
+src/pyannotation/xsl/kura2textwolines.xsl

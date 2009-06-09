@@ -1,0 +1,2 @@
+include src/pyannotation/xsl/*.xsl
+include src/pyannotation/xsd/*.xsd
