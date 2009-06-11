@@ -39,7 +39,7 @@ class EafCorpusReader(object):
                     if len(word) > 0:
                         for morpheme in word[2]:
                             if morpheme[1] != '':
-                                morphemes.append(morpheme[1])
+                                morphemes.append(morpheme[1].encode('utf-8'))
         return morphemes
 
     def words(self):
@@ -52,7 +52,7 @@ class EafCorpusReader(object):
                     continue
                 for word in utterance[2]:
                     if len(word) > 0:
-                        words.append(word[1])
+                        words.append(word[1].encode('utf-8'))
         return words
 
     def sents(self):
@@ -66,7 +66,7 @@ class EafCorpusReader(object):
                 words = []
                 for word in utterance[2]:
                     if len(word) > 0:
-                        words.append(word[1])
+                        words.append(word[1].encode('utf-8'))
                 if len(words) > 0:
                     sents.append(words)
         return sents
@@ -82,9 +82,9 @@ class EafCorpusReader(object):
                 words = []
                 for word in utterance[2]:
                     if len(word) > 0:
-                        words.append(word[1])
+                        words.append(word[1].encode('utf-8'))
                 if len(words) > 0:
-                    sents.append((words, utterance[3]))
+                    sents.append((words, utterance[3].encode('utf-8')))
         return sents
 
     def tagged_morphemes(self):
@@ -102,8 +102,8 @@ class EafCorpusReader(object):
                                 glosses = []
                                 for gloss in morpheme[2]:
                                     if gloss[1] != '':
-                                        glosses.append(gloss[1])
-                                morphemes.append((morpheme[1], glosses))
+                                        glosses.append(gloss[1].encode('utf-8'))
+                                morphemes.append((morpheme[1].encode('utf-8'), glosses))
         return morphemes
         
     def tagged_words(self):
@@ -122,9 +122,9 @@ class EafCorpusReader(object):
                                 glosses = []
                                 for gloss in morpheme[2]:
                                     if gloss[1] != '':
-                                        glosses.append(gloss[1])
-                                tag.append((morpheme[1], glosses))
-                        words.append((word[1], tag))
+                                        glosses.append(gloss[1].encode('utf-8'))
+                                tag.append((morpheme[1].encode('utf-8'), glosses))
+                        words.append((word[1].encode('utf-8'), tag))
         return words
 
     def tagged_sents(self):
@@ -144,9 +144,9 @@ class EafCorpusReader(object):
                                 glosses = []
                                 for gloss in morpheme[2]:
                                     if gloss[1] != '':
-                                        glosses.append(gloss[1])
-                                tag.append((morpheme[1], glosses))
-                        words.append((word[1], tag))
+                                        glosses.append(gloss[1].encode('utf-8'))
+                                tag.append((morpheme[1].encode('utf-8'), glosses))
+                        words.append((word[1].encode('utf-8'), tag))
                 if len(words) > 0:
                     sents.append(words)
         return sents
@@ -168,11 +168,11 @@ class EafCorpusReader(object):
                                 glosses = []
                                 for gloss in morpheme[2]:
                                     if gloss[1] != '':
-                                        glosses.append(gloss[1])
-                                tag.append((morpheme[1], glosses))
-                        words.append((word[1], tag))
+                                        glosses.append(gloss[1].encode('utf-8'))
+                                tag.append((morpheme[1].encode('utf-8'), glosses))
+                        words.append((word[1].encode('utf-8'), tag))
                 if len(words) > 0:
-                    sents.append((words, utterance[3]))
+                    sents.append((words, utterance[3].encode('utf-8')))
         return sents
 
 class EafTree(object):
@@ -180,12 +180,12 @@ class EafTree(object):
     def __init__(self, file):
         self.tree = []
         self.file = file
-        self.UTTERANCETIER_TYPEREFS = [ "utterance", "Äußerung" ]
-        self.WORDTIER_TYPEREFS = [ "words", "Wort" ]
-        self.MORPHEMETIER_TYPEREFS = [ "morphemes",  "Morphem" ]
-        self.GLOSSTIER_TYPEREFS = [ "glosses", "Glossen", "gloss" ]
-        self.POSTIER_TYPEREFS = [ "part of speech",  "Wortart" ]
-        self.TRANSLATIONTIER_TYPEREFS = [ "translation",  "Übersetzung" ]
+        self.UTTERANCETIER_TYPEREFS = [ "utterance", "utterances", "Äußerung", "Äußerungen" ]
+        self.WORDTIER_TYPEREFS = [ "words", "word", "Wort", "Worte", "Wörter" ]
+        self.MORPHEMETIER_TYPEREFS = [ "morpheme", "morphemes",  "Morphem", "Morpheme" ]
+        self.GLOSSTIER_TYPEREFS = [ "glosses", "gloss", "Glossen", "Gloss", "Glosse" ]
+        self.POSTIER_TYPEREFS = [ "part of speech", "parts of speech", "Wortart", "Wortarten" ]
+        self.TRANSLATIONTIER_TYPEREFS = [ "translation", "translations", "Übersetzung",  "Übersetzungen" ]
 
     def getTree(self):
         return self.tree
@@ -435,6 +435,7 @@ class Eaf(object):
             participant = tier.attrib['PARTICIPANT']
             if participant == None:
                 participant = ''
+        participant = participant
         return participant
 
     def addLinguisticType(self, type, constraints, timeAlignable = False, graphicReferences = False, extRef = None):
