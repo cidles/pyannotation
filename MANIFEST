@@ -1,5 +1,8 @@
+LICENSE
 README
+example1.py
 setup.py
+example_data/turkish.eaf
 src/pyannotation/__init__.py
 src/pyannotation/ag/__init__.py
 src/pyannotation/ag/dbmodel.py

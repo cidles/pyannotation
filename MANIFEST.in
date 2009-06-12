@@ -1,2 +1,5 @@
 include src/pyannotation/xsl/*.xsl
 include src/pyannotation/xsd/*.xsd
+include example_data/*.eaf
+include example1.py
+include LICENSE

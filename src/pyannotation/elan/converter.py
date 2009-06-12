@@ -1,3 +1,5 @@
+# (C) 2009 copyright by Peter Bouda
+# -*- coding: utf-8 -*-
 import os
 from lxml import etree
 

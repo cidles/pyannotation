@@ -1,3 +1,5 @@
+# (C) 2009 copyright by Peter Bouda
+# -*- coding: utf-8 -*-
 from elixir import *
 
 metadata.bind = "sqlite:///movies.sqlite"

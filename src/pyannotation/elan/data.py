@@ -1,19 +1,20 @@
+# (C) 2009 copyright by Peter Bouda
 # -*- coding: utf-8 -*-
 import os, glob
 import re
 from lxml import etree as ET
 from lxml.etree import Element
 
-class EafCorpusReader(object):
+class EafGlossCorpusReader(object):
 
-    def __init__(self, root, files = "*.eaf", locale = None, participant = None, utterancetierType = None, wordtierType = None,  morphemetierType = None, glosstierType = None, postierType = None):
+    def __init__(self, root, files = "*.eaf", locale = None, participant = None, utterancetierType = None, wordtierType = None,  morphemetierType = None, glosstierType = None):
         self.root = root
         self.files = files
         self.locale = locale
         self.participant = participant
         self.eaftrees = []
         for infile in glob.glob( os.path.join(root, files) ):
-            eaftree = EafTree(infile)
+            eaftree = EafGlossTree(infile)
             if utterancetierType != None:
                 eaftree.setUtterancetierType(utterancetierType)
             if wordtierType != None:
@@ -22,8 +23,6 @@ class EafCorpusReader(object):
                 eaftree.setMorphemetierType(morphemetierType)
             if glosstierType != None:
                 eaftree.setGlosstierType(glosstierType)
-            if postierType != None:
-                eaftree.setPostierType(postierType)
             eaftree.parse()
             self.eaftrees.append(eaftree.getTree())
 
@@ -84,7 +83,7 @@ class EafCorpusReader(object):
                     if len(word) > 0:
                         words.append(word[1].encode('utf-8'))
                 if len(words) > 0:
-                    sents.append((words, utterance[3].encode('utf-8')))
+                    sents.append((words, utterance[3]))
         return sents
 
     def tagged_morphemes(self):
@@ -172,10 +171,10 @@ class EafCorpusReader(object):
                                 tag.append((morpheme[1].encode('utf-8'), glosses))
                         words.append((word[1].encode('utf-8'), tag))
                 if len(words) > 0:
-                    sents.append((words, utterance[3].encode('utf-8')))
+                    sents.append((words, utterance[3]))
         return sents
 
-class EafTree(object):
+class EafGlossTree(object):
     
     def __init__(self, file):
         self.tree = []
