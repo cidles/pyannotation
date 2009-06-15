@@ -1,13 +1,71 @@
 # (C) 2009 copyright by Peter Bouda
 # -*- coding: utf-8 -*-
+"""This module contains classes to access Elan data.
+
+The class Eaf is a low level API to .eaf files.
+
+EafGlossTree, EafPosTree, etc. are the classes to access the data via 
+tree, which also contains the original .eaf IDs. Because of this
+EafTrees are read-/writeable. 
+
+EafGlossCorpusReader, EafPosCorpusReader, etc. implement a part of the
+corpus reader API described in the Natural Language Toolkit (NLTK):
+http://nltk.googlecode.com/svn/trunk/doc/howto/corpus.html
+"""
+
+__author__ =  'Peter Bouda'
+__version__=  '0.1.1'
+
 import os, glob
 import re
 from lxml import etree as ET
 from lxml.etree import Element
 
 class EafGlossCorpusReader(object):
+    """The class EafCorpusReader implements a part of the corpus reader API
+    described in the Natual Language Toolkit (NLTK). The class reads in all
+    the .eaf files (from the linguistics annotation software called Elan)
+    in a given directory and makes this data accessible through
+    several functions.
+    The .eaf files must at least contain a tier with words.
+    Access to the data is normally read-only.
+    """
 
     def __init__(self, root, files = "*.eaf", locale = None, participant = None, utterancetierType = None, wordtierType = None,  morphemetierType = None, glosstierType = None):
+        """
+        root: is the directory where your .eaf files are stored. Only the
+           files in the given directory are read, there is no recursive
+           reading right now. This parameter is obligatory.
+        files: a regular expression for the filenames to read. The
+        default value is "*.eaf"
+        locale: restricts the corpus data to tiers with the given locale.
+        participant: restricts the corpus data to tiers with the given
+           particiapant.
+        utterancetierType: the type of the tier you gave to your
+           "utterances" in Elan. The EafTrees have several default values
+           for this tier type: [ "utterance", "utterances", "Äußerung",
+           "Äußerungen" ]. If you used a different tier type in Elan you
+           can specify it as a parameter here. The parameter may either
+           be a string or a list of strings.
+        wordtierType: the type of the tier you gave to your
+           "words" in Elan. The EafTrees have several default values
+           for this tier type: [ "words", "word", "Wort", "Worte",
+           "Wörter" ]. If you used a different tier type in Elan you
+           can specify it as a parameter here. The parameter may either
+           be a string or a list of strings.
+        morphemetierType: the type of the tier you gave to your
+           "morphemes" in Elan. The EafTrees have several default values
+           for this tier type: [ "morpheme", "morphemes",  "Morphem",
+           "Morpheme" ]. If you used a different tier type in Elan you
+           can specify it as a parameter here. The parameter may either
+           be a string or a list of strings.
+        glosstierType: the type of the tier you gave to your
+           "glosses" in Elan. The EafTrees have several default values
+           for this tier type: [ "glosses", "gloss", "Glossen", "Gloss",
+           "Glosse" ]. If you used a different tier type in Elan you
+           can specify it as a parameter here. The parameter may either
+           be a string or a list of strings.
+        """
         self.root = root
         self.files = files
         self.locale = locale
@@ -174,7 +232,7 @@ class EafGlossCorpusReader(object):
                     sents.append((words, utterance[3]))
         return sents
 
-class EafGlossTree(object):
+class EafTree(object):
     
     def __init__(self, file):
         self.tree = []
@@ -188,72 +246,9 @@ class EafGlossTree(object):
 
     def getTree(self):
         return self.tree
-        
+    
     def parse(self):
-        eaf = Eaf(self.file)
-        self.utteranceTiers = self.getUtterancetierIds(eaf)
-        for uTier in self.utteranceTiers:
-            utterancesIds = eaf.getAlignableAnnotationIdsForTier(uTier)
-            for uId in utterancesIds:
-                utterance = eaf.getAnnotationValueForAnnotation(uTier, uId)
-                translations = []
-                ilElements = []
-                locale = eaf.getLocaleForTier(uTier)
-                participant = eaf.getParticipantForTier(uTier)
-                for tTier in self.getTranslationtierIds(eaf, uTier):
-                    transIds = eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, tTier)
-                    for transId in transIds:
-                        trans = eaf.getAnnotationValueForAnnotation(tTier, transId)
-                        if trans != '':
-                            translations.append(trans)
-                for wTier in self.getWordtierIds(eaf, uTier):
-                    wordsIds = eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, wTier)
-                    for wordId in wordsIds:
-                        ilElements.append(self.getIlElementForWordId(wordId, wTier,  eaf))   
-                        if len(ilElements) == 0:
-                            ilElements = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
-                self.tree.append([ uId,  utterance,  ilElements, translations, locale, participant, uTier ])
-        #print self.tree
-        
-    # Helpers for conversion of Elan API return values to lists and dicts in Python
-
-    def getIlElementForWordId(self, id, wTier, eaf):
-        ilElement = []
-        word = eaf.getAnnotationValueForAnnotation(wTier, id)
-        ilElement.append(id)
-        ilElement.append(word)
-        morphElements = []
-        for mTier in self.getMorphemetierIds(eaf, wTier):
-            morphIds = eaf.getSubAnnotationIdsForAnnotationInTier(id, wTier, mTier)
-            for morphId in morphIds:
-                morphElements.append(self.getFuncElementForMorphemeId(morphId, mTier, eaf))
-        if len(morphElements) == 0:
-            ilElement.append([[ '',  '',  [ ['',  ''] ]]])
-        else:
-            ilElement.append(morphElements)
-        return ilElement
-
-    def getFuncElementForMorphemeId(self, morphId, mTier, eaf):
-        ilElement = []
-        morpheme = eaf.getAnnotationValueForAnnotation(mTier, morphId)
-        morpheme = re.sub(r'^-', '', morpheme)
-        morpheme = re.sub(r'-$', '', morpheme)
-        ilElement.append(morphId)
-        ilElement.append(morpheme)
-        funcElements = []
-        for gTier in self.getGlosstierIds(eaf, mTier):
-            funcIds = eaf.getSubAnnotationIdsForAnnotationInTier(morphId, mTier, gTier)
-            for funcId in funcIds:
-                function = eaf.getAnnotationValueForAnnotation(gTier, funcId)
-                function = re.sub(r'^-', '', function)
-                morpheme = re.sub(r'-$', '', function)
-                e = [funcId, function]
-                funcElements.append(e)
-        if len(funcElements) == 0:
-            ilElement.append([['',  '']])
-        else:
-            ilElement.append(funcElements)
-        return ilElement
+        print "not implemented"
         
     def setUtterancetierType(self, type):
         if isinstance(type, list):
@@ -320,6 +315,139 @@ class EafGlossTree(object):
         for type in self.TRANSLATIONTIER_TYPEREFS:
             ret.extend(eaf.getTierIdsForLinguisticType(type, parent))
         return ret
+
+class EafGlossTree(EafTree):
+    def __init__(self, file):
+        EafTree.__init__(self, file)
+
+    def parse(self):
+        eaf = Eaf(self.file)
+        self.utteranceTiers = self.getUtterancetierIds(eaf)
+        if self.utteranceTiers != []:
+            for uTier in self.utteranceTiers:
+                utterancesIds = eaf.getAlignableAnnotationIdsForTier(uTier)
+                for uId in utterancesIds:
+                    utterance = eaf.getAnnotationValueForAnnotation(uTier, uId)
+                    translations = []
+                    ilElements = []
+                    locale = eaf.getLocaleForTier(uTier)
+                    participant = eaf.getParticipantForTier(uTier)
+                    for tTier in self.getTranslationtierIds(eaf, uTier):
+                        transIds = eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, tTier)
+                        for transId in transIds:
+                            trans = eaf.getAnnotationValueForAnnotation(tTier, transId)
+                            if trans != '':
+                                translations.append(trans)
+                    for wTier in self.getWordtierIds(eaf, uTier):
+                        wordsIds = eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, wTier)
+                        for wordId in wordsIds:
+                            ilElements.append(self.getIlElementForWordId(wordId, wTier,  eaf))   
+                            if len(ilElements) == 0:
+                                ilElements = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
+                    self.tree.append([ uId,  utterance,  ilElements, translations, locale, participant, uTier ])
+        else: # if self.utterancesTiers != []
+            for wTier in self.getWordtierIds(eaf):
+                translations = []
+                locale = eaf.getLocaleForTier(uTier)
+                participant = eaf.getParticipantForTier(uTier)
+                wordsIds = eaf.getAnnotationIdsForTier(wTier)
+                for wordId in wordsIds:
+                    ilElements.append(self.getIlElementForWordId(wordId, wTier,  eaf))   
+                    if len(ilElements) == 0:
+                        ilElements = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
+                self.tree.append([ '',  '',  ilElements, translations, locale, participant, '' ])
+ 
+    def getIlElementForWordId(self, id, wTier, eaf):
+        ilElement = []
+        word = eaf.getAnnotationValueForAnnotation(wTier, id)
+        ilElement.append(id)
+        ilElement.append(word)
+        morphElements = []
+        for mTier in self.getMorphemetierIds(eaf, wTier):
+            morphIds = eaf.getSubAnnotationIdsForAnnotationInTier(id, wTier, mTier)
+            for morphId in morphIds:
+                morphElements.append(self.getFuncElementForMorphemeId(morphId, mTier, eaf))
+        if len(morphElements) == 0:
+            ilElement.append([[ '',  '',  [ ['',  ''] ]]])
+        else:
+            ilElement.append(morphElements)
+        return ilElement
+
+    def getFuncElementForMorphemeId(self, morphId, mTier, eaf):
+        ilElement = []
+        morpheme = eaf.getAnnotationValueForAnnotation(mTier, morphId)
+        morpheme = re.sub(r'^-', '', morpheme)
+        morpheme = re.sub(r'-$', '', morpheme)
+        ilElement.append(morphId)
+        ilElement.append(morpheme)
+        funcElements = []
+        for gTier in self.getGlosstierIds(eaf, mTier):
+            funcIds = eaf.getSubAnnotationIdsForAnnotationInTier(morphId, mTier, gTier)
+            for funcId in funcIds:
+                function = eaf.getAnnotationValueForAnnotation(gTier, funcId)
+                function = re.sub(r'^-', '', function)
+                morpheme = re.sub(r'-$', '', function)
+                e = [funcId, function]
+                funcElements.append(e)
+        if len(funcElements) == 0:
+            ilElement.append([['',  '']])
+        else:
+            ilElement.append(funcElements)
+        return ilElement
+
+class EafPosTree(EafTree):
+
+    def __init__(self, file):
+        EafTree.__init__(self, file)
+
+    def parse(self):
+        eaf = Eaf(self.file)
+        self.utteranceTiers = self.getUtterancetierIds(eaf)
+        if self.utteranceTiers != []:
+            for uTier in self.utteranceTiers:
+                utterancesIds = eaf.getAlignableAnnotationIdsForTier(uTier)
+                for uId in utterancesIds:
+                    utterance = eaf.getAnnotationValueForAnnotation(uTier, uId)
+                    translations = []
+                    words = []
+                    locale = eaf.getLocaleForTier(uTier)
+                    participant = eaf.getParticipantForTier(uTier)
+                    for tTier in self.getTranslationtierIds(eaf, uTier):
+                        transIds = eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, tTier)
+                        for transId in transIds:
+                            trans = eaf.getAnnotationValueForAnnotation(tTier, transId)
+                            if trans != '':
+                                translations.append(trans)
+                    for wTier in self.getWordtierIds(eaf, uTier):
+                        wordsIds = eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, wTier)
+                        for wordId in wordsIds:
+                            posAnnotations = self.getPosAnnotationsForWordId(wordId, wTier,  eaf) 
+                            words.append(posAnnotations)
+                    self.tree.append([ uId,  utterance,  words, translations, locale, participant, uTier ])
+        else: # if self.utterancesTiers != []
+            for wTier in self.getWordtierIds(eaf):
+                translations = []
+                locale = eaf.getLocaleForTier(uTier)
+                participant = eaf.getParticipantForTier(uTier)
+                wordsIds = eaf.getAnnotationIdsForTier(wTier)
+                for wordId in wordsIds:
+                    posAnnotations = self.getPosAnnotationsForWordId(wordId, wTier,  eaf) 
+                    words.append(posAnnotations)
+                self.tree.append([ '',  '',  ilElements, translations, locale, participant, '' ])
+ 
+    def getPosAnnotationsForWordId(self, id, wTier, eaf):
+        ilElement = []
+        word = eaf.getAnnotationValueForAnnotation(wTier, id)
+        ilElement.append(id)
+        ilElement.append(word)
+        posElements = []
+        for pTier in self.getPostierIds(eaf, wTier):
+            posIds = eaf.getSubAnnotationIdsForAnnotationInTier(id, wTier, pTier)
+            for posId in posIds:
+                pos = eaf.getAnnotationValueForAnnotation(pTier, posId)
+                posElements.append((posId, pos))
+        ilElement.append(posElements)
+        return ilElement
 
 class Eaf(object):
 
@@ -396,17 +524,6 @@ class Eaf(object):
                 return False
         return None
 
-    def getSubAnnotationIdsForAnnotationInTier(self, idAnn, idTier, idSubTier):
-        type = self.getLinguisticTypeForTier(idSubTier)
-        ret = []
-        if self.linguisticTypeIsTimeAlignable(type):
-            startTs = self.getStartTsForAnnotation(idTier, idAnn)
-            endTs = self.getEndTsForAnnotation(idTier, idAnn)
-            ret = self.getAlignableAnnotationIdsForTier(idSubTier, startTs, endTs)
-        else:
-            ret = self.getRefAnnotationIdsForTier(idSubTier, idAnn)
-        return ret
-        
     def getIndexOfLastLinguisticType(self):
         ret = None
         i = 0
@@ -485,6 +602,26 @@ class Eaf(object):
     def getEndTsForAnnotation(self,  idTier,  idAnnotation):
         a = self.tree.find("TIER[@TIER_ID='%s']/ANNOTATION/ALIGNABLE_ANNOTATION[@ANNOTATION_ID='%s']" % (idTier,  idAnnotation))
         ret = a.attrib['TIME_SLOT_REF2']
+        return ret
+
+    def getSubAnnotationIdsForAnnotationInTier(self, idAnn, idTier, idSubTier):
+        type = self.getLinguisticTypeForTier(idSubTier)
+        ret = []
+        if self.linguisticTypeIsTimeAlignable(type):
+            startTs = self.getStartTsForAnnotation(idTier, idAnn)
+            endTs = self.getEndTsForAnnotation(idTier, idAnn)
+            ret = self.getAlignableAnnotationIdsForTier(idSubTier, startTs, endTs)
+        else:
+            ret = self.getRefAnnotationIdsForTier(idSubTier, idAnn)
+        return ret
+
+    def getAnnotationIdsForTier(self, idTier):
+        type = self.getLinguisticTypeForTier(idTier)
+        ret = []
+        if self.linguisticTypeIsTimeAlignable(type):
+            ret = self.getAlignableAnnotationIdsForTier(idtier)
+        else:
+            ret = self.getRefAnnotationIdsForTier(idTier)
         return ret
 
     def getRefAnnotationIdsForTier(self, idTier, annRef = None,  prevAnn = None):
