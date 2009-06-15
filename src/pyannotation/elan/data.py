@@ -21,7 +21,197 @@ import re
 from lxml import etree as ET
 from lxml.etree import Element
 
-class EafGlossCorpusReader(object):
+class EafCorpusReader(object):
+    """
+    The base class for all Elan corpus readers. It provides
+    access to all tiers that contain utterances and words.
+    """
+    def __init__(self, root, files = "*.eaf", locale = None, participant = None, utterancetierType = None, wordtierType = None):
+        self.root = root
+        self.files = files
+        self.locale = locale
+        self.participant = participant
+        self.eaftrees = []
+        for infile in glob.glob( os.path.join(root, files) ):
+            eaftree = EafTree(infile)
+            if utterancetierType != None:
+                eaftree.setUtterancetierType(utterancetierType)
+            if wordtierType != None:
+                eaftree.setWordtierType(wordtierType)
+            eaftree.parse()
+            self.eaftrees.append(eaftree.getTree())
+
+    def words(self):
+        """
+        Returns a list of words from the corpus files.
+        """
+        words = []
+        for tree in self.eaftrees:
+            for utterance in tree:
+                if self.locale != None and utterance[4] != self.locale:
+                    continue
+                if self.participant != None and utterance[5] != self.participant:
+                    continue
+                for word in utterance[2]:
+                    if len(word) > 0:
+                        words.append(word[1].encode('utf-8'))
+        return words
+
+    def sents(self):
+        """
+        Returns a list of sentences, which are lists of words from the
+        corpus files.
+        """
+        sents = []
+        for tree in self.eaftrees:
+            for utterance in tree:
+                if self.locale != None and utterance[4] != self.locale:
+                    continue
+                if self.participant != None and utterance[5] != self.participant:
+                    continue
+                words = []
+                for word in utterance[2]:
+                    if len(word) > 0:
+                        words.append(word[1].encode('utf-8'))
+                if len(words) > 0:
+                    sents.append(words)
+        return sents
+
+    def sents_with_translations(self):
+        """
+        Returns a list of (list of words, translation) tuples from the
+        corpus files.
+        """
+        sents = []
+        for tree in self.eaftrees:
+            for utterance in tree:
+                if self.locale != None and utterance[4] != self.locale:
+                    continue
+                if self.participant != None and utterance[5] != self.participant:
+                    continue
+                words = []
+                for word in utterance[2]:
+                    if len(word) > 0:
+                        words.append(word[1].encode('utf-8'))
+                if len(words) > 0:
+                    sents.append((words, utterance[3]))
+        return sents
+
+class EafPosCorpusReader(EafCorpusReader):
+    def __init__(self, root, files = "*.eaf", locale = None, participant = None, utterancetierType = None, wordtierType = None, postierType = None):
+        """
+        root: is the directory where your .eaf files are stored. Only the
+            files in the given directory are read, there is no recursive
+            reading right now. This parameter is obligatory.
+        files: a regular expression for the filenames to read. The
+            default value is "*.eaf"
+        locale: restricts the corpus data to tiers with the given locale.
+        participant: restricts the corpus data to tiers with the given
+            particiapant.
+        utterancetierType: the type of the tier you gave to your
+            "utterances" in Elan. The EafTrees have several default values
+            for this tier type: [ "utterance", "utterances", "Äußerung",
+            "Äußerungen" ]. If you used a different tier type in Elan you
+            can specify it as a parameter here. The parameter may either
+            be a string or a list of strings.
+        wordtierType: the type of the tier you gave to your
+            "words" in Elan. The EafTrees have several default values
+            for this tier type: [ "words", "word", "Wort", "Worte",
+            "Wörter" ]. If you used a different tier type in Elan you
+            can specify it as a parameter here. The parameter may either
+            be a string or a list of strings.
+        postierType: the type of the tier you gave to your
+            "parts of speeches" in Elan. The EafTrees have several default
+            values for this tier type: [ "part of speech", "parts of speech",
+            "Wortart", "Wortarten" ]. If you used a different tier type in
+            Elan you can specify it as a parameter here. The parameter
+            may either be a string or a list of strings.
+        """
+        self.root = root
+        self.files = files
+        self.locale = locale
+        self.participant = participant
+        self.eaftrees = []
+        for infile in glob.glob( os.path.join(root, files) ):
+            eaftree = EafPosTree(infile)
+            if utterancetierType != None:
+                eaftree.setUtterancetierType(utterancetierType)
+            if wordtierType != None:
+                eaftree.setWordtierType(wordtierType)
+            if postierType != None:
+                eaftree.setPostierType(postierType)
+            eaftree.parse()
+            self.eaftrees.append(eaftree.getTree())
+
+    def tagged_words(self):
+        """
+        Returns a list of (word, tag) tuples. Each tag is a list of
+        parts of speech.
+        """
+        words = []
+        for tree in self.eaftrees:
+            for utterance in tree:
+                if self.locale != None and utterance[4] != self.locale:
+                    continue
+                if self.participant != None and utterance[5] != self.participant:
+                    continue
+                for word in utterance[2]:
+                    if len(word) > 0:
+                        tag = []
+                        print word[2]
+                        for (id, pos) in word[2]:
+                            tag.append(pos)
+                        words.append((word[1].encode('utf-8'), tag))
+        return words
+
+    def tagged_sents(self):
+        """
+        Returns a list of (list of (word, tag) tuples). Each tag is a list
+        of parts of speech.
+        """
+        sents = []
+        for tree in self.eaftrees:
+            for utterance in tree:
+                if self.locale != None and utterance[4] != self.locale:
+                    continue
+                if self.participant != None and utterance[5] != self.participant:
+                    continue
+                words = []
+                for word in utterance[2]:
+                    if len(word) > 0:
+                        tag = []
+                        for id, pos in word[2]:
+                            tag.append(pos)
+                        words.append((word[1].encode('utf-8'), tag))
+                if len(words) > 0:
+                    sents.append(words)
+        return sents
+
+    def tagged_sents_with_translations(self):
+        """
+        Returns a list of (sentence, translation) tuples. Sentences
+        are lists of (word, tag) tuples. Each tag is a list of
+        parts of speech.
+        """
+        sents = []
+        for tree in self.eaftrees:
+            for utterance in tree:
+                if self.locale != None and utterance[4] != self.locale:
+                    continue
+                if self.participant != None and utterance[5] != self.participant:
+                    continue
+                words = []
+                for word in utterance[2]:
+                    if len(word) > 0:
+                        tag = []
+                        for id, pos in word[2]:
+                            tag.append(pos)
+                        words.append((word[1].encode('utf-8'), tag))
+                if len(words) > 0:
+                    sents.append((words, utterance[3]))
+        return sents
+
+class EafGlossCorpusReader(EafCorpusReader):
     """The class EafCorpusReader implements a part of the corpus reader API
     described in the Natual Language Toolkit (NLTK). The class reads in all
     the .eaf files (from the linguistics annotation software called Elan)
@@ -34,37 +224,37 @@ class EafGlossCorpusReader(object):
     def __init__(self, root, files = "*.eaf", locale = None, participant = None, utterancetierType = None, wordtierType = None,  morphemetierType = None, glosstierType = None):
         """
         root: is the directory where your .eaf files are stored. Only the
-           files in the given directory are read, there is no recursive
-           reading right now. This parameter is obligatory.
+            files in the given directory are read, there is no recursive
+            reading right now. This parameter is obligatory.
         files: a regular expression for the filenames to read. The
-        default value is "*.eaf"
+            default value is "*.eaf"
         locale: restricts the corpus data to tiers with the given locale.
         participant: restricts the corpus data to tiers with the given
-           particiapant.
+            particiapant.
         utterancetierType: the type of the tier you gave to your
-           "utterances" in Elan. The EafTrees have several default values
-           for this tier type: [ "utterance", "utterances", "Äußerung",
-           "Äußerungen" ]. If you used a different tier type in Elan you
-           can specify it as a parameter here. The parameter may either
-           be a string or a list of strings.
+            "utterances" in Elan. The EafTrees have several default values
+            for this tier type: [ "utterance", "utterances", "Äußerung",
+            "Äußerungen" ]. If you used a different tier type in Elan you
+            can specify it as a parameter here. The parameter may either
+            be a string or a list of strings.
         wordtierType: the type of the tier you gave to your
-           "words" in Elan. The EafTrees have several default values
-           for this tier type: [ "words", "word", "Wort", "Worte",
-           "Wörter" ]. If you used a different tier type in Elan you
-           can specify it as a parameter here. The parameter may either
-           be a string or a list of strings.
+            "words" in Elan. The EafTrees have several default values
+            for this tier type: [ "words", "word", "Wort", "Worte",
+            "Wörter" ]. If you used a different tier type in Elan you
+            can specify it as a parameter here. The parameter may either
+            be a string or a list of strings.
         morphemetierType: the type of the tier you gave to your
-           "morphemes" in Elan. The EafTrees have several default values
-           for this tier type: [ "morpheme", "morphemes",  "Morphem",
-           "Morpheme" ]. If you used a different tier type in Elan you
-           can specify it as a parameter here. The parameter may either
-           be a string or a list of strings.
+            "morphemes" in Elan. The EafTrees have several default values
+            for this tier type: [ "morpheme", "morphemes",  "Morphem",
+            "Morpheme" ]. If you used a different tier type in Elan you
+            can specify it as a parameter here. The parameter may either
+            be a string or a list of strings.
         glosstierType: the type of the tier you gave to your
-           "glosses" in Elan. The EafTrees have several default values
-           for this tier type: [ "glosses", "gloss", "Glossen", "Gloss",
-           "Glosse" ]. If you used a different tier type in Elan you
-           can specify it as a parameter here. The parameter may either
-           be a string or a list of strings.
+            "glosses" in Elan. The EafTrees have several default values
+            for this tier type: [ "glosses", "gloss", "Glossen", "Gloss",
+            "Glosse" ]. If you used a different tier type in Elan you
+            can specify it as a parameter here. The parameter may either
+            be a string or a list of strings.
         """
         self.root = root
         self.files = files
@@ -85,6 +275,9 @@ class EafGlossCorpusReader(object):
             self.eaftrees.append(eaftree.getTree())
 
     def morphemes(self):
+        """
+        Returns a list of morphemes from the corpus files.
+        """
         morphemes = []
         for tree in self.eaftrees:
             for utterance in tree:
@@ -99,52 +292,10 @@ class EafGlossCorpusReader(object):
                                 morphemes.append(morpheme[1].encode('utf-8'))
         return morphemes
 
-    def words(self):
-        words = []
-        for tree in self.eaftrees:
-            for utterance in tree:
-                if self.locale != None and utterance[4] != self.locale:
-                    continue
-                if self.participant != None and utterance[5] != self.participant:
-                    continue
-                for word in utterance[2]:
-                    if len(word) > 0:
-                        words.append(word[1].encode('utf-8'))
-        return words
-
-    def sents(self):
-        sents = []
-        for tree in self.eaftrees:
-            for utterance in tree:
-                if self.locale != None and utterance[4] != self.locale:
-                    continue
-                if self.participant != None and utterance[5] != self.participant:
-                    continue
-                words = []
-                for word in utterance[2]:
-                    if len(word) > 0:
-                        words.append(word[1].encode('utf-8'))
-                if len(words) > 0:
-                    sents.append(words)
-        return sents
-
-    def sents_with_translations(self):
-        sents = []
-        for tree in self.eaftrees:
-            for utterance in tree:
-                if self.locale != None and utterance[4] != self.locale:
-                    continue
-                if self.participant != None and utterance[5] != self.participant:
-                    continue
-                words = []
-                for word in utterance[2]:
-                    if len(word) > 0:
-                        words.append(word[1].encode('utf-8'))
-                if len(words) > 0:
-                    sents.append((words, utterance[3]))
-        return sents
-
     def tagged_morphemes(self):
+        """
+        Returns a list of (morpheme, list of glosses) tuples.
+        """
         morphemes = []
         for tree in self.eaftrees:
             for utterance in tree:
@@ -164,6 +315,10 @@ class EafGlossCorpusReader(object):
         return morphemes
         
     def tagged_words(self):
+        """
+        Returns a list of (word, tag) tuples. Each tag is a list of
+        (morpheme, list of glosses) tuples.
+        """
         words = []
         for tree in self.eaftrees:
             for utterance in tree:
@@ -185,6 +340,10 @@ class EafGlossCorpusReader(object):
         return words
 
     def tagged_sents(self):
+        """
+        Returns a list of (list of (word, tag) tuples). Each tag is
+        a list of (morpheme, list of glosses) tuples.
+        """
         sents = []
         for tree in self.eaftrees:
             for utterance in tree:
@@ -209,6 +368,11 @@ class EafGlossCorpusReader(object):
         return sents
 
     def tagged_sents_with_translations(self):
+        """
+        Returns a list of (sentence, translation) tuples. Sentences
+        are lists of (word, tag) tuples. Each tag is a list of
+        (morpheme, list of glosses) tuples.
+        """
         sents = []
         for tree in self.eaftrees:
             for utterance in tree:
@@ -248,7 +412,39 @@ class EafTree(object):
         return self.tree
     
     def parse(self):
-        print "not implemented"
+        eaf = Eaf(self.file)
+        self.utteranceTiers = self.getUtterancetierIds(eaf)
+        if self.utteranceTiers != []:
+            for uTier in self.utteranceTiers:
+                utterancesIds = eaf.getAlignableAnnotationIdsForTier(uTier)
+                for uId in utterancesIds:
+                    utterance = eaf.getAnnotationValueForAnnotation(uTier, uId)
+                    translations = []
+                    ilElements = []
+                    locale = eaf.getLocaleForTier(uTier)
+                    participant = eaf.getParticipantForTier(uTier)
+                    for tTier in self.getTranslationtierIds(eaf, uTier):
+                        transIds = eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, tTier)
+                        for transId in transIds:
+                            trans = eaf.getAnnotationValueForAnnotation(tTier, transId)
+                            if trans != '':
+                                translations.append(trans)
+                    for wTier in self.getWordtierIds(eaf, uTier):
+                        wordsIds = eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, wTier)
+                        for wordId in wordsIds:
+                            word = eaf.getAnnotationValueForAnnotation(wTier, wordId)
+                            ilElements.append([wordId, word])   
+                    self.tree.append([ uId,  utterance,  ilElements, translations, locale, participant, uTier ])
+        else: # if self.utterancesTiers != []
+            for wTier in self.getWordtierIds(eaf):
+                translations = []
+                locale = eaf.getLocaleForTier(uTier)
+                participant = eaf.getParticipantForTier(uTier)
+                wordsIds = eaf.getAnnotationIdsForTier(wTier)
+                for wordId in wordsIds:
+                    word = eaf.getAnnotationValueForAnnotation(wTier, wordId)
+                    ilElements.append([wordId, word])   
+                self.tree.append([ '',  '',  ilElements, translations, locale, participant, '' ])
         
     def setUtterancetierType(self, type):
         if isinstance(type, list):

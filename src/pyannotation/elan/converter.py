@@ -1,5 +1,11 @@
 # (C) 2009 copyright by Peter Bouda
 # -*- coding: utf-8 -*-
+"""
+A class to convert Elan's .eaf files to other formats.
+"""
+__author__ =  'Peter Bouda'
+__version__=  '0.1.1'
+
 import os
 from lxml import etree
 
@@ -12,6 +18,13 @@ class Convert(object):
         pass
         
     def toAg(text):
+        """
+        Convert an Elan XML string to a Annotation Graph XML string.
+        Call this as a static function:
+        
+        ag_xml = pyannotation.elan.converter.Convert.toAg(elan_xml)
+
+        """
         xsl_path = os.path.join(os.path.dirname(__file__), '..',  'xsl', 'elan2ag.xsl')
         xslt_doc = etree.parse(xsl_path)
         transform = etree.XSLT(xslt_doc)

@@ -1,5 +1,11 @@
 # (C) 2009 copyright by Peter Bouda
 # -*- coding: utf-8 -*-
+"""
+A class to convert Kura XML files to other formats.
+"""
+__author__ =  'Peter Bouda'
+__version__=  '0.1.1'
+
 import os
 from lxml import etree
 
@@ -12,6 +18,14 @@ class Convert(object):
         pass
         
     def toHtmllgr(text):
+        """
+        Convert a Kura XML string to a HTML string, displayed
+        as an interlinear text.
+        Call this as a static function:
+        
+        html = pyannotation.elan.converter.Convert.toHtmllgr(kura_xml)
+
+        """
         xsl_path = os.path.join(os.path.dirname(__file__), '..',  'xsl', 'kura2htmllgr.xsl')
         xslt_doc = etree.parse(xsl_path)
         transform = etree.XSLT(xslt_doc)
@@ -21,6 +35,14 @@ class Convert(object):
         return result
         
     def toTextwolines(text):
+        """
+        Convert a Kura XML string to a Tex string, displayed
+        as an interlinear text.
+        Call this as a static function:
+        
+        html = pyannotation.elan.converter.Convert.toTextwolines(kura_xml)
+
+        """
         xsl_path = os.path.join(os.path.dirname(__file__), '..', 'xsl', 'kura2textwolines.xsl')
         xslt_doc = etree.parse(xsl_path)
         transform = etree.XSLT(xslt_doc)

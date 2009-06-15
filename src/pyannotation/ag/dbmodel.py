@@ -1,5 +1,13 @@
 # (C) 2009 copyright by Peter Bouda
 # -*- coding: utf-8 -*-
+"""
+Classes for database storage of annotation graphs.
+The database model uses Elixir as ORM. It is
+not usable yet.
+"""
+__author__ =  'Peter Bouda'
+__version__=  '0.1.1'
+
 from elixir import *
 
 metadata.bind = "sqlite:///movies.sqlite"
