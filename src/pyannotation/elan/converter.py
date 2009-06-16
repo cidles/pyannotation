@@ -8,6 +8,7 @@ __version__=  '0.1.1'
 
 import os
 from lxml import etree
+from StringIO import StringIO
 
 class Callable:
     def __init__(self, anycallable):
@@ -28,9 +29,10 @@ class Convert(object):
         xsl_path = os.path.join(os.path.dirname(__file__), '..',  'xsl', 'elan2ag.xsl')
         xslt_doc = etree.parse(xsl_path)
         transform = etree.XSLT(xslt_doc)
-        document = etree.parse(text)
-        result = transfrom(doc)
-        result = unicode(result,  'utf-8')
+        document = etree.parse(StringIO(text.encode('utf-8')))
+        result = transform(document)
+        result = str(result)
+        result = result.decode('utf-8')
         return result
  
     toAg = Callable(toAg)
