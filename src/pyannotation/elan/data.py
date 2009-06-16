@@ -98,6 +98,17 @@ class EafCorpusReader(object):
         return sents
 
 class EafPosCorpusReader(EafCorpusReader):
+    """
+    The class EafPosCorpusReader implements a part of the corpus reader API
+    described in the Natual Language Toolkit (NLTK). The class reads in all
+    the .eaf files (from the linguistics annotation software called Elan)
+    in a given directory and makes this data accessible through
+    several functions. The data contains "tags", which are annotations
+    in "part of speech" tiers in Elan.
+    The .eaf files must at least contain a tier with words.
+    Access to the data is normally read-only.
+    """
+    
     def __init__(self, root, files = "*.eaf", locale = None, participant = None, utterancetierType = None, wordtierType = None, postierType = None):
         """
         root: is the directory where your .eaf files are stored. Only the
@@ -212,11 +223,12 @@ class EafPosCorpusReader(EafCorpusReader):
         return sents
 
 class EafGlossCorpusReader(EafCorpusReader):
-    """The class EafCorpusReader implements a part of the corpus reader API
+    """The class EafGlossCorpusReader implements a part of the corpus reader API
     described in the Natual Language Toolkit (NLTK). The class reads in all
     the .eaf files (from the linguistics annotation software called Elan)
     in a given directory and makes this data accessible through
-    several functions.
+    several functions. The data contains "tags", which are annotations
+    in "morpheme" and "gloss" tiers in Elan.
     The .eaf files must at least contain a tier with words.
     Access to the data is normally read-only.
     """

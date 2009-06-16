@@ -1,0 +1,6 @@
+from 0.1.0 to 0.1.1:
+* Added EafCorpusReader for corpus data without tags
+* Added EafPosCorpusReader for corpus data with part of speech annotations
+* tiers for "utterances" are not necessary anymore; if there are no
+  "utterances" then only word tiers will be read
+* added documentation in python source files and doc/ directory

@@ -12,6 +12,7 @@ REQUIREMENTS
 ------------
 You need to install the following packages:
 - Python: http://python.org/download
+- lxml: http://codespeak.net/lxml/index.html#download
 - If you want to process data with NLTK: http://www.nltk.org/download
 
 
@@ -23,8 +24,8 @@ To install PyAnnotation on Linux, Unix and other platforms you need to unpack
 the file and start "setup.py" on the command line. Change to the directory
 into which you downloaded the package and unpack it:
 
-$ tar xzf pyannotation-0.1.0.tar.gz
-$ cd pyannotation-0.1.0
+$ tar xzf pyannotation-x.y.z.tar.gz
+$ cd pyannotation-x.y.z
 
 Then, to install the package locally into your python repository (you may need
 to have root privileges):
@@ -124,6 +125,10 @@ corpus reader for .eaf files has the following access methods for data:
 # I{corpus}.tagged_words()
 # I{corpus}.tagged_sents()
 # I{corpus}.tagged_sents_with_translations()
+
+More documentation is available at:
+
+http://www.peterbouda.de/doc/pyannotation/index.html
 
 
 SITE AND CONTACT
