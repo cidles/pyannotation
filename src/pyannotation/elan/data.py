@@ -414,18 +414,25 @@ class EafBaseTree(object):
         self.tree = []
         self.file = file
         self.eaf = Eaf(self.file)
+        self.lastUsedAnnotationId = self.eaf.getLastUsedAnnotationId()
         self.UTTERANCETIER_TYPEREFS = [ "utterance", "utterances", "Äußerung", "Äußerungen" ]
         self.WORDTIER_TYPEREFS = [ "words", "word", "Wort", "Worte", "Wörter" ]
         self.MORPHEMETIER_TYPEREFS = [ "morpheme", "morphemes",  "Morphem", "Morpheme" ]
         self.GLOSSTIER_TYPEREFS = [ "glosses", "gloss", "Glossen", "Gloss", "Glosse" ]
         self.POSTIER_TYPEREFS = [ "part of speech", "parts of speech", "Wortart", "Wortarten" ]
         self.TRANSLATIONTIER_TYPEREFS = [ "translation", "translations", "Übersetzung",  "Übersetzungen" ]
+        self.MORPHEME_BOUNDARY = "-"
+        self.GLOSS_BOUNDARY = ":"
 
     def getTree(self):
         return self.tree
 
     def parse(self):
         pass
+
+    def getNextAnnotationId(self):
+        self.lastUsedAnnotationId = self.lastUsedAnnotationId + 1
+        return self.lastUsedAnnotationId
 
     def setUtterancetierType(self, type):
         if isinstance(type, list):
@@ -544,12 +551,27 @@ class EafTree(EafBaseTree):
                 return utterance[1]
         return ''
 
+    def setUtterance(self, utteranceId, strUtterance):
+        for utterance in self.tree:
+            if utterance[0] == utteranceId:
+                utterance[1] = strUtterance
+                return True
+        return False
+        
     def getTranslationById(self, translationId):
         for utterance in self.tree:
             for translation in utterance[3]:
                 if translation[0] == translationId:
                     return translation[1]
         return ''
+
+    def setTranslation(self, translationId, strTranslation):
+        for utterance in self.tree:
+            for translation in utterance[3]:
+                if translation[0] == translationId:
+                    translation[1] = strTranslation
+                    return True
+        return False
 
     def getWordById(self, wordId):
         for utterance in self.tree:
@@ -661,7 +683,7 @@ class EafGlossTree(EafTree):
 
     def getMorphemeStringForWord(self, wordId):
         m = [morpheme[1] for u in self.tree for w in u[2] if w[0] == wordId for morpheme in w[2]]
-        return "-".join(m)
+        return self.MORPHEME_BOUNDARY.join(m)
 
     def getGlossStringForWord(self, wordId):
         l = []
@@ -670,8 +692,53 @@ class EafGlossTree(EafTree):
                 if w[0] == wordId:
                     for m in w[2]:
                         f = [gloss[1] for gloss in m[2]]
-                        l.append(":".join(f))
-        return "-".join(l)
+                        l.append(self.GLOSS_BOUNDARY.join(f))
+        return self.MORPHEME_BOUNDARY.join(l)
+
+    def ilElementForString(self, text):
+        arrT = text.split(" ")
+        word = arrT[0]
+        il = ""
+        gloss = ""
+        if len(arrT) > 1:
+            il = arrT[1]
+        if len(arrT) > 2:
+            gloss = arrT[2]
+        ilElement = [ "", word, [] ]
+        arrIl = il.split(self.MORPHEME_BOUNDARY)
+        arrGloss = gloss.split(self.MORPHEME_BOUNDARY)
+        for i in range(len(arrIl)):
+            g = ""
+            if i < len(arrGloss):
+                g = arrGloss[i]
+            arrG = g.split(self.GLOSS_BOUNDARY)
+            arrG2 = []
+            for g2 in arrG:
+                arrG2.append([ "", g2])
+            ilElement[2].append([ "", arrIl[i], arrG2 ])
+        return ilElement
+
+    def setIlElementForWordId(self, wordId, ilElement):
+        for u in self.tree:
+            for i in range(len(u[2])):
+                w = u[2][i]
+                if w[0] == wordId:
+                    # fill the new ilElement with old Ids, generate new Ids for new elements
+                    ilElement[0] = wordId
+                    for j in range(len(ilElement[2])):
+                        if j < len(w[2]):
+                            ilElement[2][j][0] = w[2][j][0]
+                        else:
+                            ilElement[2][j][0] = "a%i" % self.getNextAnnotationId()
+                        for k in range(len(ilElement[2][j][2])):
+                            if j < len(w[2]) and k < len(w[2][j][2]):
+                                ilElement[2][j][2][k][0] = w[2][j][2][k][0]
+                            else:
+                                ilElement[2][j][2][k][0] = "a%i" % self.getNextAnnotationId()
+                    u[2][i] = ilElement
+                    return True
+        return False
+        
 
 class EafPosTree(EafTree):
 
@@ -770,6 +837,24 @@ class Eaf(object):
         if ret == None:
             ret = i
         return ret
+
+    def getLastUsedAnnotationId(self):
+        lastId = int(self.tree.findtext("HEADER/PROPERTY[@NAME='lastUsedAnnotationId']"))
+        if lastId == None:
+            lastId = 0
+            annotations = self.tree.findall("ALIGNABLE_ANNOTATION")
+            for a in annotation:
+                i = a.attrib['ANNOTATION_ID']
+                i = int(re.sub(r"\D", "", i))
+                if i > lastId:
+                    lastId = i
+            annotations = self.tree.findall("REF_ANNOTATION")
+            for a in annotation:
+                i = a.attrib['ANNOTATION_ID']
+                i = int(re.sub(r"\D", "", i))
+                if i > lastId:
+                    lastId = i
+        return lastId
 
     def getTierIdsForLinguisticType(self, type, parent = None):
         ret = []
@@ -934,14 +1019,14 @@ class Eaf(object):
         ret = []
         ts = {}
         if startTs != None and endTs != None:
-            iStartTs = int(re.sub("\D", '', startTs))
-            iEndTs = int(re.sub("\D", '', endTs))
+            iStartTs = int(re.sub(r"\D", '', startTs))
+            iEndTs = int(re.sub(r"\D", '', endTs))
         allAnnotations = self.tree.findall("TIER[@TIER_ID='%s']/ANNOTATION/ALIGNABLE_ANNOTATION" % id)
         for a in allAnnotations:
             aStartTs = a.attrib['TIME_SLOT_REF1']
             aEndTs = a.attrib['TIME_SLOT_REF2']
-            iAStartTs = int(re.sub("\D", '', aStartTs))
-            iAEndTs = int(re.sub("\D", '', aEndTs))
+            iAStartTs = int(re.sub(r"\D", '', aStartTs))
+            iAEndTs = int(re.sub(r"\D", '', aEndTs))
             if startTs != None and endTs != None:
                 if iStartTs > iAStartTs or iEndTs < iAEndTs:
                     continue
