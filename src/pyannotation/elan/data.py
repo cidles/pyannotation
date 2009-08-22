@@ -18,6 +18,7 @@ __version__=  '0.1.1'
 
 import os, glob
 import re
+from copy import deepcopy
 from lxml import etree as ET
 from lxml.etree import Element
 
@@ -500,6 +501,12 @@ class EafBaseTree(object):
             ret.extend(self.eaf.getTierIdsForLinguisticType(type, parent))
         return ret
 
+    def addEafTier(self, tierId, tierType, tierTypeConstraint, parentTier, tierDefaultLocale, tierParticipant):
+        self.eaf.addTier(tierId, tierType, parentTier, tierDefaultLocale, tierParticipant)
+        if not self.eaf.hasLinguisticType(tierType):
+            self.eaf.addLinguisticType(tierType, tierTypeConstraint)
+
+
 class EafTree(EafBaseTree):
     
     def __init__(self, file):
@@ -726,19 +733,57 @@ class EafGlossTree(EafTree):
                     # fill the new ilElement with old Ids, generate new Ids for new elements
                     ilElement[0] = wordId
                     for j in range(len(ilElement[2])):
-                        if j < len(w[2]):
+                        if j < len(w[2]) and w[2][j][0] != "":
                             ilElement[2][j][0] = w[2][j][0]
                         else:
                             ilElement[2][j][0] = "a%i" % self.getNextAnnotationId()
                         for k in range(len(ilElement[2][j][2])):
-                            if j < len(w[2]) and k < len(w[2][j][2]):
+                            if j < len(w[2]) and k < len(w[2][j][2]) and w[2][j][2][k][0] != "":
                                 ilElement[2][j][2][k][0] = w[2][j][2][k][0]
                             else:
                                 ilElement[2][j][2][k][0] = "a%i" % self.getNextAnnotationId()
                     u[2][i] = ilElement
                     return True
         return False
-        
+
+    def getAsEafXml(self, tierUtterances, tierWords, tierMorphemes, tierGlosses, tierTranslations):
+        # make local copy of eaf
+        eaf2 = deepcopy(self.eaf)
+        utterances = [[u[0], u[1]] for u in self.tree if u[6] == tierUtterances]
+        translations = [u[3] for u in self.tree if u[6] == tierUtterances and len(u[3])>=2]
+        words = [[w[0], w[1]] for u in self.tree if u[6] == tierUtterances for w in u[2]]
+        ilelements = [u[2] for u in self.tree if u[6] == tierUtterances]
+        # save utterances
+        for u in utterances:
+            eaf2.setAnnotationValueForAnnotation(tierUtterances, u[0], u[1])
+        # save translations
+        for t in translations:
+            eaf2.setAnnotationValueForAnnotation(tierTranslations, t[0], t[1])
+        # save words
+        for w in words:
+            eaf2.setAnnotationValueForAnnotation(tierWords, w[0], w[1])
+        #save morphemes
+        eaf2.deleteAllAnnotationsFromTier(tierMorphemes)
+        eaf2.deleteAllAnnotationsFromTier(tierGlosses)
+        for i in ilelements:
+            for w in i:
+                if len(w) >= 3:
+                    refAnnMorph = w[0]
+                    prevAnnMorph = None
+                    for m in w[2]:
+                        if len(m) >= 3:
+                            if m[0] != "" and m[1] != "" and refAnnMorph != "":
+                                eaf2.appendRefAnnotationToTier(tierMorphemes, m[0], m[1], refAnnMorph, prevAnnMorph)
+                            prevAnnMorph = m[0]
+                            refAnnGloss = m[0]
+                            prevAnnGloss = None
+                            for g in m[2]:
+                                if len(g) >= 2:
+                                    if g[0] != "" and g[1] != "" and refAnnGloss != "":
+                                        eaf2.appendRefAnnotationToTier(tierGlosses, g[0], g[1], refAnnGloss, prevAnnGloss)
+                                    prevAnnGloss = g[0]
+        return eaf2.tostring()
+
 
 class EafPosTree(EafTree):
 
@@ -799,6 +844,9 @@ class Eaf(object):
     def __init__(self, file):
         self.tree = ET.parse(file)
 
+    def tostring(self):
+        return ET.tostring(self.tree.getroot(), pretty_print=True, encoding="utf-8")
+
     def tiers(self):
         # returns tiers as dictionary: id -> type
         ret = {}
@@ -839,17 +887,19 @@ class Eaf(object):
         return ret
 
     def getLastUsedAnnotationId(self):
-        lastId = int(self.tree.findtext("HEADER/PROPERTY[@NAME='lastUsedAnnotationId']"))
-        if lastId == None:
-            lastId = 0
-            annotations = self.tree.findall("ALIGNABLE_ANNOTATION")
-            for a in annotation:
+        strId = self.tree.findtext("HEADER/PROPERTY[@NAME='lastUsedAnnotationId']")
+        lastId = 0
+        if strId != None:
+            lastId = int(strId)
+        else:
+            annotations = self.tree.findall("TIER/ANNOTATION/ALIGNABLE_ANNOTATION")
+            for a in annotations:
                 i = a.attrib['ANNOTATION_ID']
                 i = int(re.sub(r"\D", "", i))
                 if i > lastId:
                     lastId = i
-            annotations = self.tree.findall("REF_ANNOTATION")
-            for a in annotation:
+            annotations = self.tree.findall("TIER/ANNOTATION/REF_ANNOTATION")
+            for a in annotations:
                 i = a.attrib['ANNOTATION_ID']
                 i = int(re.sub(r"\D", "", i))
                 if i > lastId:
@@ -1015,6 +1065,20 @@ class Eaf(object):
             ret.extend(self.getRefAnnotationIdsForTier(idTier, annRef,  id))
         return ret
 
+    def appendRefAnnotationToTier(self, idTier, idAnnotation, strAnnotation, annRef, prevAnn = None):
+        t = self.tree.find("TIER[@TIER_ID='%s']" % idTier)
+        if t == None:
+            return False
+        eAnnotation = Element("ANNOTATION")
+        if prevAnn == None:
+            eRefAnn = ET.SubElement(eAnnotation, "REF_ANNOTATION", ANNOTATION_ID=idAnnotation, ANNOTATION_REF=annRef)
+        else:
+            eRefAnn = ET.SubElement(eAnnotation, "REF_ANNOTATION", ANNOTATION_ID=idAnnotation, ANNOTATION_REF=annRef, PREVIOUS_ANNOTATION=prevAnn)
+        eAnnVal = ET.SubElement(eRefAnn, "ANNOTATION_VALUE")
+        eAnnVal.text = strAnnotation
+        t.append(eAnnotation)
+        return True
+
     def getAlignableAnnotationIdsForTier(self, id, startTs = None,  endTs = None):
         ret = []
         ts = {}
@@ -1041,6 +1105,15 @@ class Eaf(object):
             ret.append(k)
         return ret
 
+    def deleteAllAnnotationsFromTier(self, idTier):
+        t = self.tree.findall("TIER[@TIER_ID='%s']" % idTier)
+        annotations = self.tree.findall("TIER[@TIER_ID='%s']/ANNOTATION" % idTier)
+        if t == None or annotations == None:
+            return False
+        for a in annotations:
+            t.remove(a)
+        return True
+
     def getAnnotationValueForAnnotation(self, idTier, idAnnotation):
         type = self.getLinguisticTypeForTier(idTier)
         ret = ''
@@ -1053,3 +1126,18 @@ class Eaf(object):
         if ret == None:
             ret = ''
         return ret
+
+    def setAnnotationValueForAnnotation(self, idTier, idAnnotation, strAnnotation):
+        type = self.getLinguisticTypeForTier(idTier)
+        ret = ''
+        a = None
+        if self.linguisticTypeIsTimeAlignable(type):
+            a = self.tree.find("TIER[@TIER_ID='%s']/ANNOTATION/ALIGNABLE_ANNOTATION[@ANNOTATION_ID='%s']/ANNOTATION_VALUE" % (idTier,  idAnnotation))
+        else:
+            a = self.tree.find("TIER[@TIER_ID='%s']/ANNOTATION/REF_ANNOTATION[@ANNOTATION_ID='%s']/ANNOTATION_VALUE" % (idTier,  idAnnotation))
+        if a == None:
+            return False
+        a.text = strAnnotation
+        return True
+
+
