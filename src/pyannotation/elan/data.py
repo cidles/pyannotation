@@ -633,8 +633,8 @@ class EafGlossTree(EafTree):
                         wordsIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, wTier)
                         for wordId in wordsIds:
                             ilElements.append(self.getIlElementForWordId(wordId, wTier))
-                            if len(ilElements) == 0:
-                                ilElements = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
+                        if len(ilElements) == 0:
+                            ilElements = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
                     self.tree.append([ uId,  utterance,  ilElements, translations, locale, participant, uTier ])
         else: # if self.utterancesTiers != []
             for wTier in self.getWordtierIds():
@@ -644,8 +644,8 @@ class EafGlossTree(EafTree):
                 wordsIds = self.eaf.getAnnotationIdsForTier(wTier)
                 for wordId in wordsIds:
                     ilElements.append(self.getIlElementForWordId(wordId, wTier))   
-                    if len(ilElements) == 0:
-                        ilElements = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
+                if len(ilElements) == 0:
+                    ilElements = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
                 self.tree.append([ '',  '',  ilElements, translations, locale, participant, '' ])
  
     def getIlElementForWordId(self, id, wTier):

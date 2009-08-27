@@ -4,6 +4,7 @@
 import pyannotation.kura.data
 from lxml import etree
 
-xml = pyannotation.kura.data.KuraXML('example_data/examples1.xml')
-
-print etree.tostring(xml.tree)
+tree = pyannotation.kura.data.KuraTree('example_data/examples1.xml')
+tree.parse()
+print tree.tree
+#print etree.tostring(xml.tree)

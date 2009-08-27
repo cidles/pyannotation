@@ -20,13 +20,50 @@ __version__=  '0.1.1'
 from lxml import etree
 from lxml.etree import Element
 
-class KuraXML(object):
+class KuraTree(object):
 
     def __init__(self, file):
         self.kuraxml = KuraXML(file)
+        self.tree = []
+        self.file = file
+        self.MORPHEME_BOUNDARY = "-"
+        self.GLOSS_BOUNDARY = ":"
 
     def parse(self):
-        
+        self.phraseIds = self.kuraxml.getPhraseIds()
+        for pId in self.phraseIds:
+            phrase = self.kuraxml.getPhraseForId(pId)
+            translations = self.kuraxml.getTranslationsForPhraseId(pId)
+            translationsWithIds = []
+            ilElements = []
+            for t in translations:
+                translationsWithIds.append([pId, t])
+            wordsIds = self.kuraxml.getWordIdsForPhraseId(pId)
+            for wordId in wordsIds:
+                ilElements.append(self.getIlElementForWordId(wordId))
+            if len(ilElements) == 0:
+                ilElements = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
+            self.tree.append([ pId,  phrase,  ilElements, translationsWithIds])
+
+    def getIlElementForWordId(self, wordId):
+        ilElement = []
+        word = self.kuraxml.getWordForId(wordId)
+        ilElement.append(wordId)
+        ilElement.append(word)
+        morphElements = []
+        morphIds = self.kuraxml.getMorphIdsForWordId(wordId)
+        for morphId in morphIds:
+            morpheme = self.kuraxml.getMorphForId(morphId)
+            glosses = self.kuraxml.getGlossesForMorphId(morphId)
+            glossElements = []
+            for gloss in glosses:
+                glossElements.append(['', gloss])
+            morphElements.append([ morphId, morpheme, glossElements ])
+        if len(morphIds) == 0:
+            ilElement.append([[ '',  '',  [ ['',  ''] ]]])
+        else:
+            ilElement.append(morphElements)
+        return ilElement
 
 class KuraXML(object):
 
@@ -38,7 +75,7 @@ class KuraXML(object):
         items = self.tree.findall("//phrase") + self.tree.findall("//word") + self.tree.findall("//morph")
         for i in items:
             if not 'id' in i.attrib:
-                i.set('id', "%i" % aid)
+                i.set('id', "a%i" % aid)
                 aid = aid + 1
 
     def getLastUsedAnnotationId(self):
@@ -49,32 +86,70 @@ class KuraXML(object):
                 aid = int(i.attrib['id'])
         return aid
 
-    def getPhrasesIds(self):
+    def getPhraseIds(self):
         ids = []
-        phrases = self.tree.findall("/interlinear-text/phrases/phrase")
+        phrases = self.tree.findall("phrases/phrase")
         for p in phrases:
-            ids.append(p.attrib["id"]
+            ids.append(p.attrib["id"])
+        return ids
 
     def getPhraseForId(self, idPhrase):
         ret = None
-        phrase = self.tree.find("/interlinear-text/phrases/phrase[@id='%s']" % idPhrase)
+        phrase = self.tree.find("phrases/phrase[@id='%s']" % idPhrase)
         if phrase != None:
             ret = phrase.findtext("item[@type='text']")
         return ret
 
+    def getTranslationsForPhraseId(self, idPhrase):
+        translations = []
+        items = self.tree.findall("phrases/phrase[@id='%s']/item[@type='TR']" % idPhrase)
+        if items != None:
+            for i in items:
+                t = i.findtext(".")
+                if t != None:
+                    translations.append(t)
+        return translations
+
     def getWordIdsForPhraseId(self, idPhrase):
-        pass
+        ids = []
+        words = self.tree.findall("phrases/phrase[@id='%s']/words/word" % idPhrase)
+        for w in words:
+            ids.append(w.attrib["id"])
+        return ids
 
     def getWordForId(self, idWord):
-        pass
+        ret = None
+        word = self.tree.find("phrases/phrase/words/word[@id='%s']" % idWord)
+        if word != None:
+            ret = word.findtext("item[@type='text']")
+        return ret
 
     def getMorphIdsForWordId(self, idWord):
-        pass
+        ids = []
+        morphs = self.tree.findall("phrases/phrase/words/word[@id='%s']/morphemes/morph" % idWord)
+        for m in morphs:
+            ids.append(m.attrib["id"])
+        return ids
 
     def getMorphForId(self, idMorph):
-        pass
+        ret = None
+        morph = self.tree.find("phrases/phrase/words/word/morphemes/morph[@id='%s']" % idMorph)
+        if morph != None:
+            ret = morph.findtext("item[@type='text']")
+        return ret
 
     def getGlossesForMorphId(self, idMorph):
-        pass
+        glosses = []
+        items = self.tree.findall("phrases/phrase/words/word/morphemes/morph[@id='%s']/item[@type='ABBR']" % idMorph)
+        if items == None:
+            items = []
+        items2 = self.tree.findall("phrases/phrase/words/word/morphemes/morph[@id='%s']/item[@type='GL']" % idMorph)
+        if items2 == None:
+            items2 = []
+        for i in items + items2:
+            g = i.findtext(".")
+            if g != None:
+                glosses.append(g)
+        return glosses
 
 
