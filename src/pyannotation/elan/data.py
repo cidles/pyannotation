@@ -572,6 +572,15 @@ class EafTree(EafBaseTree):
                     return translation[1]
         return ''
 
+    def newTranslationForUtteranceId(self, utteranceId, strTranslation):
+        translationId = None
+        for utterance in self.tree:
+            if utterance[0] == utteranceId:
+                translationId = "a%i" % self.getNextAnnotationId()
+                utterance[3] = [ [ translationId, strTranslation ] ]
+        print translationId
+        return translationId
+
     def setTranslation(self, translationId, strTranslation):
         for utterance in self.tree:
             for translation in utterance[3]:
@@ -1106,7 +1115,7 @@ class Eaf(object):
         return ret
 
     def deleteAllAnnotationsFromTier(self, idTier):
-        t = self.tree.findall("TIER[@TIER_ID='%s']" % idTier)
+        t = self.tree.find("TIER[@TIER_ID='%s']" % idTier)
         annotations = self.tree.findall("TIER[@TIER_ID='%s']/ANNOTATION" % idTier)
         if t == None or annotations == None:
             return False
