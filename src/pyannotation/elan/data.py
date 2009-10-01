@@ -759,15 +759,18 @@ class EafGlossTree(EafTree):
         # make local copy of eaf
         eaf2 = deepcopy(self.eaf)
         utterances = [[u[0], u[1]] for u in self.tree if u[6] == tierUtterances]
-        translations = [u[3] for u in self.tree if u[6] == tierUtterances and len(u[3])>=2]
+        translations = [[u[3], u[0]] for u in self.tree if u[6] == tierUtterances and len(u[3])>=1]
         words = [[w[0], w[1]] for u in self.tree if u[6] == tierUtterances for w in u[2]]
         ilelements = [u[2] for u in self.tree if u[6] == tierUtterances]
         # save utterances
         for u in utterances:
             eaf2.setAnnotationValueForAnnotation(tierUtterances, u[0], u[1])
         # save translations
-        for t in translations:
-            eaf2.setAnnotationValueForAnnotation(tierTranslations, t[0], t[1])
+        for t1 in translations:
+            for t in t1[0]:
+                if t[1] != "":
+                    if not eaf2.setAnnotationValueForAnnotation(tierTranslations, t[0], t[1]):
+                        eaf2.appendRefAnnotationToTier(tierTranslations, t[0], t[1], t1[1])
         # save words
         for w in words:
             eaf2.setAnnotationValueForAnnotation(tierWords, w[0], w[1])
