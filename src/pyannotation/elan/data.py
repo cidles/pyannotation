@@ -1,5 +1,5 @@
-# (C) 2009 copyright by Peter Bouda
 # -*- coding: utf-8 -*-
+# (C) 2009 copyright by Peter Bouda
 """This module contains classes to access Elan data.
 
 The class Eaf is a low level API to .eaf files.
@@ -465,6 +465,12 @@ class EafBaseTree(object):
         else:
             self.POSTIER_TYPEREFS = [type]
 
+    def setTranslationtierType(self, type):
+        if isinstance(type, list):
+            self.TRANSLATIONTIER_TYPEREFS = type
+        else:
+            self.TRANSLATIONTIER_TYPEREFS = [type]
+
     def getUtterancetierIds(self, parent = None):
         ret = []
         for type in self.UTTERANCETIER_TYPEREFS:
@@ -921,9 +927,9 @@ class Eaf(object):
     def getTierIdsForLinguisticType(self, type, parent = None):
         ret = []
         if parent == None:
-            tiers = self.tree.findall("TIER[@LINGUISTIC_TYPE_REF='%s']" % type.decode('utf-8'))
+            tiers = self.tree.findall("TIER[@LINGUISTIC_TYPE_REF='%s']" % type) #.decode('utf-8')
         else:
-            tiers = self.tree.findall("TIER[@LINGUISTIC_TYPE_REF='%s'][@PARENT_REF='%s']" % (type.decode('utf-8'), parent))
+            tiers = self.tree.findall("TIER[@LINGUISTIC_TYPE_REF='%s'][@PARENT_REF='%s']" % (type, parent)) #.decode('utf-8')
         for tier in tiers:
             ret.append(tier.attrib['TIER_ID'])
         return ret
