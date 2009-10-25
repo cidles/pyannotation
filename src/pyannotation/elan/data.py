@@ -170,7 +170,6 @@ class EafPosCorpusReader(EafCorpusReader):
                 for word in utterance[2]:
                     if len(word) > 0:
                         tag = []
-                        print word[2]
                         for (id, pos) in word[2]:
                             tag.append(pos)
                         words.append((word[1].encode('utf-8'), tag))
@@ -584,7 +583,6 @@ class EafTree(EafBaseTree):
             if utterance[0] == utteranceId:
                 translationId = "a%i" % self.getNextAnnotationId()
                 utterance[3] = [ [ translationId, strTranslation ] ]
-        print translationId
         return translationId
 
     def setTranslation(self, translationId, strTranslation):
@@ -654,8 +652,8 @@ class EafGlossTree(EafTree):
         else: # if self.utterancesTiers != []
             for wTier in self.getWordtierIds():
                 translations = []
-                locale = self.eaf.getLocaleForTier(uTier)
-                participant = self.eaf.getParticipantForTier(uTier)
+                locale = self.eaf.getLocaleForTier(wTier)
+                participant = self.eaf.getParticipantForTier(wTier)
                 wordsIds = self.eaf.getAnnotationIdsForTier(wTier)
                 for wordId in wordsIds:
                     ilElements.append(self.getIlElementForWordId(wordId, wTier))   
