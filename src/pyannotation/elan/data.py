@@ -759,6 +759,25 @@ class EafGlossTree(EafTree):
                     return True
         return False
 
+    def removeUtteranceWithId(self, utteranceId):
+        i = 0
+        for utterance in self.tree:
+            if utterance[0] == utteranceId:
+                # found utterances, delete all elements from tree
+                for w in utterance[2]:
+                    for m in w[2]:
+                        for g in m[2]:
+                            self.eaf.removeAnnotationWithId(g[0])
+                        self.eaf.removeAnnotationWithId(m[0])
+                    self.eaf.removeAnnotationWithId(w[0])
+                for t in utterance[3]:
+                    self.eaf.removeAnnotationWithId(t[0])                    
+                self.eaf.removeAnnotationWithId(utteranceId)
+                self.tree.pop(i)
+                return True
+            i = i + 1
+        return False
+
     def getAsEafXml(self, tierUtterances, tierWords, tierMorphemes, tierGlosses, tierTranslations):
         # make local copy of eaf
         eaf2 = deepcopy(self.eaf)
@@ -779,8 +798,8 @@ class EafGlossTree(EafTree):
         for w in words:
             eaf2.setAnnotationValueForAnnotation(tierWords, w[0], w[1])
         #save morphemes
-        eaf2.deleteAllAnnotationsFromTier(tierMorphemes)
-        eaf2.deleteAllAnnotationsFromTier(tierGlosses)
+        eaf2.removeAllAnnotationsFromTier(tierMorphemes)
+        eaf2.removeAllAnnotationsFromTier(tierGlosses)
         for i in ilelements:
             for w in i:
                 if len(w) >= 3:
@@ -1121,7 +1140,7 @@ class Eaf(object):
             ret.append(k)
         return ret
 
-    def deleteAllAnnotationsFromTier(self, idTier):
+    def removeAllAnnotationsFromTier(self, idTier):
         t = self.tree.find("TIER[@TIER_ID='%s']" % idTier)
         annotations = self.tree.findall("TIER[@TIER_ID='%s']/ANNOTATION" % idTier)
         if t == None or annotations == None:
@@ -1129,6 +1148,15 @@ class Eaf(object):
         for a in annotations:
             t.remove(a)
         return True
+
+    def removeAnnotationWithId(self, idAnnotation):
+        a = self.tree.find("TIER/ANNOTATION/ALIGNABLE_ANNOTATION[@ANNOTATION_ID='%s']" % idAnnotation)
+        if a != None:
+            a.getparent().getparent().remove(a.getparent())
+        else:
+            a = self.tree.find("TIER/ANNOTATION/REF_ANNOTATION[@ANNOTATION_ID='%s']" % idAnnotation)
+            if a != None:
+                a.getparent().getparent().remove(a.getparent())
 
     def getAnnotationValueForAnnotation(self, idTier, idAnnotation):
         type = self.getLinguisticTypeForTier(idTier)
