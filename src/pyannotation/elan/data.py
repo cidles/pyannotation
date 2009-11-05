@@ -778,6 +778,30 @@ class EafGlossTree(EafTree):
             i = i + 1
         return False
 
+    def removeWordWithId(self, wordId):
+        for utterance in self.tree:
+            i = 0
+            for w in utterance[2]:
+                if w[0] == wordId:
+                    for m in w[2]:
+                        for g in m[2]:
+                            self.eaf.removeAnnotationWithId(g[0])
+                        self.eaf.removeAnnotationWithId(m[0])
+                    self.eaf.removeAnnotationWithId(wordId)
+                    # link next word to prev, if those are there
+                    if i > 0 and len(utterance[2]) > (i+1):
+                        prevwordId = utterance[2][i-1][0]
+                        nextwordId = utterance[2][i+1][0]
+                        self.eaf.updatePrevAnnotationForAnnotation(nextwordId, prevwordId)
+                    # remove link to this word if this is the first word and there is a second
+                    if i == 0 and len(utterance[2]) > 1:
+                        nextwordId = utterance[2][i+1][0]
+                        self.eaf.updatePrevAnnotationForAnnotation(nextwordId)
+                    utterance[2].pop(i)
+                    return True
+                i = i + 1
+        return False
+
     def getAsEafXml(self, tierUtterances, tierWords, tierMorphemes, tierGlosses, tierTranslations):
         # make local copy of eaf
         eaf2 = deepcopy(self.eaf)
@@ -1184,4 +1208,13 @@ class Eaf(object):
         a.text = strAnnotation
         return True
 
+    def updatePrevAnnotationForAnnotation(self, idAnnotation, idPrevAnn = None):
+        # this will just do nothing for time-aligned tiers
+        # if idPrevAnn is None, then the attribute will be removed
+        a = self.tree.find("TIER/ANNOTATION/REF_ANNOTATION[@ANNOTATION_ID='%s']" % idAnnotation)
+        if a != None:
+            if idPrevAnn == None:
+                del(a.attrib['PREVIOUS_ANNOTATION'])
+            else:
+                a.attrib['PREVIOUS_ANNOTATION'] = idPrevAnn
 
