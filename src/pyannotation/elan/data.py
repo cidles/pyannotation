@@ -768,11 +768,16 @@ class EafGlossTree(EafTree):
                     for m in w[2]:
                         for g in m[2]:
                             self.eaf.removeAnnotationWithId(g[0])
+                            self.eaf.removeAnnotationsWithRef(g[0])
                         self.eaf.removeAnnotationWithId(m[0])
+                        self.eaf.removeAnnotationsWithRef(m[0])
                     self.eaf.removeAnnotationWithId(w[0])
+                    self.eaf.removeAnnotationsWithRef(w[0])
                 for t in utterance[3]:
                     self.eaf.removeAnnotationWithId(t[0])                    
+                    self.eaf.removeAnnotationsWithRef(t[0])
                 self.eaf.removeAnnotationWithId(utteranceId)
+                self.eaf.removeAnnotationsWithRef(utteranceId)
                 self.tree.pop(i)
                 return True
             i = i + 1
@@ -786,7 +791,9 @@ class EafGlossTree(EafTree):
                     for m in w[2]:
                         for g in m[2]:
                             self.eaf.removeAnnotationWithId(g[0])
+                            self.eaf.removeAnnotationsWithRef(g[0])
                         self.eaf.removeAnnotationWithId(m[0])
+                        self.eaf.removeAnnotationsWithRef(m[0])
                     self.eaf.removeAnnotationWithId(wordId)
                     # link next word to prev, if those are there
                     if i > 0 and len(utterance[2]) > (i+1):
@@ -797,6 +804,7 @@ class EafGlossTree(EafTree):
                     if i == 0 and len(utterance[2]) > 1:
                         nextwordId = utterance[2][i+1][0]
                         self.eaf.updatePrevAnnotationForAnnotation(nextwordId)
+                    self.eaf.removeAnnotationsWithRef(wordId)
                     utterance[2].pop(i)
                     return True
                 i = i + 1
@@ -1181,6 +1189,11 @@ class Eaf(object):
             a = self.tree.find("TIER/ANNOTATION/REF_ANNOTATION[@ANNOTATION_ID='%s']" % idAnnotation)
             if a != None:
                 a.getparent().getparent().remove(a.getparent())
+
+    def removeAnnotationsWithRef(self, idRefAnn):
+        allAnnotations = self.tree.findall("TIER/ANNOTATION/REF_ANNOTATION[@ANNOTATION_REF='%s']" % idRefAnn)
+        for a in allAnnotations:
+            a.getparent().getparent().remove(a.getparent())
 
     def getAnnotationValueForAnnotation(self, idTier, idAnnotation):
         type = self.getLinguisticTypeForTier(idTier)
