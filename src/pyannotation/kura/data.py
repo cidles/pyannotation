@@ -5,7 +5,7 @@
 The class KuraXML is a low level API to Kura .xml files.
 
 KuraTree is the class to access the data via a tree, which also
-contains the original .eaf IDs. Because of this KuraTrees are
+contains the original .xml IDs. Because of this KuraTrees are
 read-/writeable. 
 
 KuraCorpusReader implements a part of the corpus reader API
@@ -14,7 +14,7 @@ http://nltk.googlecode.com/svn/trunk/doc/howto/corpus.html
 """
 
 __author__ =  'Peter Bouda'
-__version__=  '0.1.1'
+__version__=  '0.1.2'
 
 
 from lxml import etree
