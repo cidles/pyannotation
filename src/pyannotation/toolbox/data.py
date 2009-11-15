@@ -16,31 +16,51 @@ __author__ =  'Peter Bouda'
 __version__=  '0.1.2'
 
 import re
+import pyannotation.data
 
-class ToolboxTree(object):
+############################ Builders
 
-    def __init__(self, file, wordSep = r"[ \n\t\r]+", morphemeSep = r"[-]", glossSep = r"[:]"):
-        self.MORPHEME_BOUNDARY = morphemeSep
-        self.GLOSS_BOUNDARY = glossSep
-        self.WORD_BOUNDARY = wordSep
+class ToolboxAnnotationFileObject(pyannotation.data.AnnotationFileObject):
+
+    def __init__(self, filepath):
+        pyannotation.data.AnnotationFileObject.__init__(self, filepath)
+        self.setFilepath(filepath)
+
+    def getFile(self):
+        return self.filepath
+
+    def getFilepath(self):
+        return self.filepath
+
+    def setFilepath(self, filepath):
+        self.filepath = filepath
+
+class ToolboxAnnotationFileTiers(pyannotation.data.AnnotationFileTiers):
+    pass
+
+class ToolboxAnnotationFileParser(pyannotation.data.AnnotationFileParser):
+
+    def __init__(self, annotationFileObject, annotationFileTiers, wordSep = r"[ \n\t\r]+", morphemeSep = r"[-]", glossSep = r"[:]"):
+        pyannotation.data.AnnotationFileParser.__init__(self, annotationFileObject, annotationFileTiers, wordSep, morphemeSep, glossSep)
         self.lastUsedAnnotationId = 0
-        self.parse(file, wordSep, morphemeSep, glossSep)
-        print self.tree
+        self.annotationFileObject = annotationFileObject
+        #self.parse(file, wordSep, morphemeSep, glossSep)
+        #print self.tree
 
-    def parse(self, file, wordSep, morphemeSep, glossSep):
-        f = open(file, 'r')
+    def parse(self):
+        f = open(self.annotationFileObject.getFilepath(), 'r')
         strInRef = ""
         strText = ""
         strMorph = ""
         strGloss = ""
         strTrans = ""
-        self.tree = []    
+        tree = []    
         for line in f:
             if re.search(r"^\\ref ", line):
                 # new ref starts, so process data
                 if strInRef != "":
                     strText = re.sub(r"[\.,\?!]", "", strText)
-                    strText = re.sub(self.WORD_BOUNDARY, " ", strText)
+                    strText = re.sub(self.WORD_BOUNDARY_PARSE, " ", strText)
                     strText.strip()
                     strTrans.strip()
                     strMorph.strip()
@@ -50,11 +70,11 @@ class ToolboxTree(object):
                     strText = re.sub(r"\r\n", "", strText)
                     strMorph = re.sub(r"\r\n", "", strMorph)
                     strGloss = re.sub(r"\r\n", "", strGloss)
-                    arrTextWords = re.split(self.WORD_BOUNDARY, strText)
+                    arrTextWords = re.split(self.WORD_BOUNDARY_PARSE, strText)
                     arrTextWords = filter(lambda i: i != '', arrTextWords)
-                    arrMorphWords = re.split(self.WORD_BOUNDARY, strMorph)
+                    arrMorphWords = re.split(self.WORD_BOUNDARY_PARSE, strMorph)
                     arrMorphWords = filter(lambda i: i != '', arrMorphWords)
-                    arrGlossWords = re.split(self.WORD_BOUNDARY, strGloss)
+                    arrGlossWords = re.split(self.WORD_BOUNDARY_PARSE, strGloss)
                     arrGlossWords = filter(lambda i: i != '', arrGlossWords)
                     ilElements = []
                     for i,word in enumerate(arrTextWords):
@@ -67,7 +87,7 @@ class ToolboxTree(object):
                         ilElements.append(self.ilElementForString("%s %s %s" % (word, morphemes, glosses)))
                     if len(ilElements) == 0:
                         ilElements = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
-                    self.tree.append([ strInRef,  strText,  ilElements, [["a%i" % self.useNextAnnotationId(), strTrans]] ])
+                    tree.append([ strInRef,  strText,  ilElements, [["a%i" % self.useNextAnnotationId(), strTrans]], "", "", "" ])
                     strInRef = ""
                     strText = ""
                     strMorph = ""
@@ -88,6 +108,7 @@ class ToolboxTree(object):
             elif re.search(r"^\\ft ", line):
                 line = re.sub(r"^\\ft ", "", line)
                 strTrans = line            
+        return tree
 
     def ilElementForString(self, text):
         arrT = text.split(" ")
@@ -99,13 +120,13 @@ class ToolboxTree(object):
         if len(arrT) > 2:
             gloss = arrT[2]
         ilElement = [ "a%i" % self.useNextAnnotationId(), word, [] ]
-        arrIl = re.split(self.MORPHEME_BOUNDARY, il)
-        arrGloss = re.split(self.MORPHEME_BOUNDARY, gloss)
+        arrIl = re.split(self.MORPHEME_BOUNDARY_PARSE, il)
+        arrGloss = re.split(self.MORPHEME_BOUNDARY_PARSE, gloss)
         for i in range(len(arrIl)):
             g = ""
             if i < len(arrGloss):
                 g = arrGloss[i]
-            arrG = re.split(self.GLOSS_BOUNDARY, g)
+            arrG = re.split(self.GLOSS_BOUNDARY_PARSE, g)
             arrG2 = []
             for g2 in arrG:
                 arrG2.append([ "a%i" % self.useNextAnnotationId(), g2])
