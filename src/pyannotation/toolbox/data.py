@@ -59,6 +59,7 @@ class ToolboxAnnotationFileParser(pyannotation.data.AnnotationFileParser):
         strTrans = ""
         tree = []    
         for line in f:
+            line = unicode(line, "iso-8859-1")
             if re.search(r"^\\ref ", line):
                 # new ref starts, so process data
                 if strInRef != "":
