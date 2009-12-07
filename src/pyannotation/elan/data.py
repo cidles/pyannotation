@@ -427,10 +427,20 @@ class EafAnnotationFileObject(pyannotation.data.AnnotationFileObject):
         self.filepath = filepath
         self.file = Eaf(self.filepath)
 
-class EafAnnotationFileTiers(pyannotation.data.AnnotationFileTiers):
+    def createTierHandler(self):
+        if self.tierHandler == None:
+            self.tierHandler = EafAnnotationFileTierHandler(self)
+        return self.tierHandler
+
+    def createParser(self):
+        if self.parser == None:
+            self.parser = EafAnnotationFileParser(self, self.createTierHandler())
+        return self.parser
+
+class EafAnnotationFileTierHandler(pyannotation.data.AnnotationFileTierHandler):
 
     def __init__(self, annotationFileObject):
-        pyannotation.data.AnnotationFileTiers.__init__(self, annotationFileObject)
+        pyannotation.data.AnnotationFileTierHandler.__init__(self, annotationFileObject)
         self.eaf = annotationFileObject.getFile()
         self.UTTERANCETIER_TYPEREFS = [ "utterance", "utterances", "Äußerung", "Äußerungen" ]
         self.WORDTIER_TYPEREFS = [ "words", "word", "Wort", "Worte", "Wörter" ]

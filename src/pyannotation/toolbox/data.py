@@ -35,8 +35,11 @@ class ToolboxAnnotationFileObject(pyannotation.data.AnnotationFileObject):
     def setFilepath(self, filepath):
         self.filepath = filepath
 
-class ToolboxAnnotationFileTiers(pyannotation.data.AnnotationFileTiers):
-    pass
+    def createParser(self):
+        if self.parser == None:
+            self.parser = ToolboxAnnotationFileParser(self, self.createTierHandler())
+        return self.parser
+
 
 class ToolboxAnnotationFileParser(pyannotation.data.AnnotationFileParser):
 
@@ -66,10 +69,10 @@ class ToolboxAnnotationFileParser(pyannotation.data.AnnotationFileParser):
                     strMorph.strip()
                     strGloss.strip()
                     # stupid python does not strip windows line ends
-                    strTrans = re.sub(r"\r\n", "", strTrans)
-                    strText = re.sub(r"\r\n", "", strText)
-                    strMorph = re.sub(r"\r\n", "", strMorph)
-                    strGloss = re.sub(r"\r\n", "", strGloss)
+                    strTrans = re.sub(r"\r\n", " ", strTrans)
+                    strText = re.sub(r"\r\n", " ", strText)
+                    strMorph = re.sub(r"\r\n", " ", strMorph)
+                    strGloss = re.sub(r"\r\n", " ", strGloss)
                     arrTextWords = re.split(self.WORD_BOUNDARY_PARSE, strText)
                     arrTextWords = filter(lambda i: i != '', arrTextWords)
                     arrMorphWords = re.split(self.WORD_BOUNDARY_PARSE, strMorph)
