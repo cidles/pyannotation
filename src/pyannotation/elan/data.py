@@ -575,7 +575,7 @@ class EafAnnotationFileParser(pyannotation.data.AnnotationFileParser):
                             ilElements = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
                     tree.append([ uId,  utterance,  ilElements, translations, locale, participant, uTier ])
         else: # if self.utterancesTiers != []
-            for wTier in self.getWordtierIds():
+            for wTier in self.tierBuilder.getWordtierIds():
                 translations = []
                 locale = self.eaf.getLocaleForTier(wTier)
                 participant = self.eaf.getParticipantForTier(wTier)

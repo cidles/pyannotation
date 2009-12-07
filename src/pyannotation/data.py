@@ -89,7 +89,7 @@ class AnnotationFileTierHandler(object):
         pass
 
 class AnnotationFileParser(object):
-    """Just the interface of the Builders. All methods are empty."""
+    """Just the interface of the Builders."""
 
     def __init__(self, annotationFileObject, annotationFileTiers, wordSep = r"[ \n\t\r]+", morphemeSep = r"[-]", glossSep = r"[:]"):
         self.WORD_BOUNDARY_PARSE = wordSep
@@ -150,6 +150,9 @@ class AnnotationTree(object):
 
     def addTier(self, *args):
         return self.builder.addTier(*args)
+
+    def getUtteranceIds(self):
+        return [utterance[0] for utterance in self.tree]
 
     def getUtteranceIdsInTier(self, tierId=""):
         return [utterance[0] for utterance in self.tree if utterance[6] == tierId]
