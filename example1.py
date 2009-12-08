@@ -1,13 +1,21 @@
 # (C) 2009 copyright by Peter Bouda
 # -*- coding: utf-8 -*-
 
-import pyannotation.elan.data
+import pyannotation.data
+import glob, os
 
-cr = pyannotation.elan.data.EafGlossCorpusReader('example_data')
+cr = pyannotation.data.GlossCorpusReader()
+files = glob.glob(os.path.join("example_data", "*.eaf"))
+
+for f in files:
+    print "add %s to corpus reader..." % f
+    cr.addFile(f, pyannotation.data.EAF)
 
 # find all (unique) sentences that contain a morpheme with gloss "ANOM"
-result = [s for s in cr.tagged_sents() for (word, tag) in s for (morphem, gloss) in tag if 'ANOM' in gloss and s not in locals()['_[1]']]
+result = [s for s in cr.taggedSents() for (word, tag) in s for (morphem, gloss) in tag if 'ANOM' in gloss and s not in locals()['_[1]']]
 print result
+
+
 
 # get a list of sentences from the result
 sents = [[w for (w, t) in s] for s in result]
