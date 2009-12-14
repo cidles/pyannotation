@@ -16,7 +16,7 @@ http://nltk.googlecode.com/svn/trunk/doc/howto/corpus.html
 __author__ =  'Peter Bouda'
 __version__=  '0.2.0'
 
-import os, glob
+import os, glob, re
 import pyannotation.data
 from copy import deepcopy
 from lxml import etree as ET
