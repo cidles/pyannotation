@@ -1,10 +1,10 @@
 # (C) 2009 copyright by Peter Bouda
 # -*- coding: utf-8 -*-
 
-import pyannotation.data
+import pyannotation.corpusreader
 import glob, os
 
-cr = pyannotation.data.GlossCorpusReader()
+cr = pyannotation.corpusreader.GlossCorpusReader()
 files = glob.glob(os.path.join("example_data", "*.eaf"))
 
 for f in files:

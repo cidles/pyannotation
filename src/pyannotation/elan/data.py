@@ -17,7 +17,6 @@ __author__ =  'Peter Bouda'
 __version__=  '0.2.0'
 
 import os, glob
-import re
 import pyannotation.data
 from copy import deepcopy
 from lxml import etree as ET
