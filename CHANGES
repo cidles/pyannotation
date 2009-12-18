@@ -1,3 +1,9 @@
+from 0.1.1 to 0.2.0:
+* complete rewrite of classes: now using builders instead of inheritance
+* file format dependant classes for TierHandlers and Parsers
+* file format independant AnnotationTree and CorpusReader classes
+* .eaf files are now writeable, see AnnotationTree interface
+
 from 0.1.0 to 0.1.1:
 * Added EafCorpusReader for corpus data without tags
 * Added EafPosCorpusReader for corpus data with part of speech annotations

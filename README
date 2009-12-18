@@ -50,13 +50,14 @@ $ python
 Python 2.6.2 (release26-maint, Apr 19 2009, 01:56:41) 
 [GCC 4.3.3] on linux2
 Type "help", "copyright", "credits" or "license" for more information.
->>> import pyannotation.elan.data
+>>> import pyannotation.corpusreader
 
 
-Then load the directory into the corpus reader. You can provide your own
-directory here, the corpus reader reads in all .eaf files in the directory:
+Then load create a corpus reader and load a file into your corpus. The
+second argument to the addFile method is the file type (.eaf here):
 
->>> cr = pyannotation.elan.data.EafGlossCorpusReader('example_data')
+>>> cr = pyannotation.corpusreader.GlossCorpusReader()
+>>> cr.addFile("example_data/turkish.eaf", pyannotation.data.EAF)
 
 
 To get all sentences with their tags that have a gloss "ANOM" (here: tags
