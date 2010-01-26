@@ -175,7 +175,7 @@ class EafAnnotationFileParser(pyannotation.data.AnnotationFileParser):
         self.utteranceTierIds = self.tierBuilder.getUtterancetierIds()
         if self.utteranceTierIds != []:
             for uTier in self.utteranceTierIds:
-                utterancesIds = self.eaf.getAlignableAnnotationIdsForTier(uTier)
+                utterancesIds = self.eaf.getAlignableAnnotationIdsForTier(uTier) + self.eaf.getRefAnnotationIdsForTier(uTier)
                 for uId in utterancesIds:
                     utterance = self.eaf.getAnnotationValueForAnnotation(uTier, uId)
                     translations = []
@@ -547,18 +547,20 @@ class Eaf(object):
         prevs = {}
         if annRef == None:
             allAnnotations = self.tree.findall("TIER[@TIER_ID='%s']/ANNOTATION/REF_ANNOTATION" % idTier)
+            for a in allAnnotations:
+                ret.append(a.attrib['ANNOTATION_ID'])
         else:
             if prevAnn == None:
                 allAnnotations = self.tree.findall("TIER[@TIER_ID='%s']/ANNOTATION/REF_ANNOTATION[@ANNOTATION_REF='%s']" % (idTier, annRef))
             else:
                 allAnnotations = self.tree.findall("TIER[@TIER_ID='%s']/ANNOTATION/REF_ANNOTATION[@ANNOTATION_REF='%s'][@PREVIOUS_ANNOTATION='%s']" % (idTier, annRef, prevAnn))
-        for a in allAnnotations:
-            if prevAnn == None and 'PREVIOUS_ANNOTATION' in a.attrib:
-                continue
-            ret.append(a.attrib['ANNOTATION_ID'])
-            foundann.append(a.attrib['ANNOTATION_ID'])
-        for id in foundann:
-            ret.extend(self.getRefAnnotationIdsForTier(idTier, annRef,  id))
+            for a in allAnnotations:
+                if prevAnn == None and 'PREVIOUS_ANNOTATION' in a.attrib:
+                    continue
+                ret.append(a.attrib['ANNOTATION_ID'])
+                foundann.append(a.attrib['ANNOTATION_ID'])
+            for id in foundann:
+                ret.extend(self.getRefAnnotationIdsForTier(idTier, annRef,  id))
         return ret
 
     def appendRefAnnotationToTier(self, idTier, idAnnotation, strAnnotation, annRef, prevAnn = None):
