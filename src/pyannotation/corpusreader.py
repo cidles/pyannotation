@@ -37,9 +37,9 @@ class CorpusReader(object):
         self.morphemetierTypes = None
         self.glosstierTypes = None
         self.interlineartype = WORDS
-        self.eaftrees = []
+        self.annotationtrees = []
 
-    def addFile(self, filepath, filetype):
+    def addFile(self, filepath, filetype, locale = None, participant = None, utterancetierTypes = None, wordtierTypes = None, translationtierTypes = None, morphemetierTypes = None, glosstierTypes = None, postierTypes = None):
         annotationFileObject = None
         if filetype == EAF:
             annotationFileObject = EafAnnotationFileObject(filepath)
@@ -58,20 +58,38 @@ class CorpusReader(object):
 
             annotationTree = AnnotationTree(annotationParser)
             # Setting the tier types for the parse
-            if self.utterancetierTypes != None:
+            if utterancetierTypes != None:
+                annotationTierHandler.setUtterancetierType(utterancetierTypes)
+            elif self.utterancetierTypes != None:
                 annotationTierHandler.setUtterancetierType(self.utterancetierTypes)
-            if self.wordtierTypes != None:
+
+            if wordtierTypes != None:
+                annotationTierHandler.setWordtierType(wordtierTypes)
+            elif self.wordtierTypes != None:
                 annotationTierHandler.setWordtierType(self.wordtierTypes)
-            if self.morphemetierTypes != None:
+
+            if morphemetierTypes != None:
+                annotationTierHandler.setMorphemetierType(morphemetierTypes)
+            elif self.morphemetierTypes != None:
                 annotationTierHandler.setMorphemetierType(self.morphemetierTypes)
-            if self.glosstierTypes != None:
+
+            if glosstierTypes != None:
+                annotationTierHandler.setGlosstierType(glosstierTypes)
+            elif self.glosstierTypes != None:
                 annotationTierHandler.setGlosstierType(self.glosstierTypes)
-            if self.postierTypes != None:
-                annotationTierHandler.setPostierType(self.glosstierTypes)
-            if self.translationtierTypes != None:
+
+            if postierTypes != None:
+                annotationTierHandler.setPostierType(postierTypes)
+            elif self.postierTypes != None:
+                annotationTierHandler.setPostierType(self.postierTypes)
+
+            if translationtierTypes != None:
                 annotationTierHandler.setTranslationtierType(translationtierTypes)
+            elif self.translationtierTypes != None:
+                annotationTierHandler.setTranslationtierType(self.translationtierTypes)
+
             annotationTree.parse()
-            self.eaftrees.append([filepath, annotationTree])
+            self.annotationtrees.append([filepath, annotationTree])
 
     def words(self):
         """
@@ -179,7 +197,7 @@ class PosCorpusReader(CorpusReader):
         self.glosstierTypes = None
         self.translationtierTypes = translationtierTypes
         self.interlineartype = POS
-        self.eaftrees = []
+        self.annotationtrees = []
 
     def taggedWords(self):
         """
@@ -259,7 +277,7 @@ class GlossCorpusReader(CorpusReader):
     Access to the data is normally read-only.
     """
 
-    def __init__(self, locale = None, participant = None, utterancetierTypes = None, wordtierTypes = None,  morphemetierTypes = None, glosstierTypes = None, translationtierTypes = None):
+    def __init__(self, locale = None, participant = None, utterancetierTypes = None, wordtierTypes = None, translationtierTypes = None, morphemetierTypes = None, glosstierTypes = None):
         """
         root: is the directory where your .eaf files are stored. Only the
             files in the given directory are read, there is no recursive
@@ -305,11 +323,11 @@ class GlossCorpusReader(CorpusReader):
         self.utterancetierTypes = utterancetierTypes
         self.wordtierTypes = wordtierTypes
         self.postierTypes = None
-        self.morphemetierTypes = utterancetierTypes
-        self.glosstierTypes = utterancetierTypes
+        self.morphemetierTypes = morphemetierTypes
+        self.glosstierTypes = glosstierTypes
         self.translationtierTypes = translationtierTypes
         self.interlineartype = GLOSS
-        self.eaftrees = []
+        self.annotationtrees = []
 
     def morphemes(self):
         """
