@@ -8,7 +8,7 @@ http://nltk.googlecode.com/svn/trunk/doc/howto/corpus.html
 """
 
 __author__ =  'Peter Bouda'
-__version__=  '0.2.0'
+__version__=  '0.2.1'
 
 import os, glob
 import re
@@ -17,7 +17,7 @@ from pyannotation.toolbox.data import ToolboxAnnotationFileObject
 from pyannotation.data import AnnotationTree
 
 # file types
-(EAF, KURA, TOOLBOX) = range(3)
+(EAF, EAFFROMTOOLBOX, KURA, TOOLBOX) = range(4)
 
 # interlinear types: WORDS means "no interlinear"
 (GLOSS, WORDS, POS) = range(3)

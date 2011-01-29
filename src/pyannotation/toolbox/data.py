@@ -13,7 +13,7 @@ http://nltk.googlecode.com/svn/trunk/doc/howto/corpus.html
 """
 
 __author__ =  'Peter Bouda'
-__version__=  '0.1.2'
+__version__=  '0.2.0'
 
 import re
 import pyannotation.data
