@@ -13,7 +13,7 @@ http://nltk.googlecode.com/svn/trunk/doc/howto/corpus.html
 """
 
 __author__ =  'Peter Bouda'
-__version__=  '0.2.0'
+__version__=  '0.2.1'
 
 import re
 import pyannotation.data
@@ -45,7 +45,6 @@ class ToolboxAnnotationFileParser(pyannotation.data.AnnotationFileParser):
 
     def __init__(self, annotationFileObject, annotationFileTiers, wordSep = r"[ \n\t\r]+", morphemeSep = r"[-]", glossSep = r"[:]"):
         pyannotation.data.AnnotationFileParser.__init__(self, annotationFileObject, annotationFileTiers, wordSep, morphemeSep, glossSep)
-        self.lastUsedAnnotationId = 0
         self.annotationFileObject = annotationFileObject
         #self.parse(file, wordSep, morphemeSep, glossSep)
         #print self.tree
@@ -114,36 +113,7 @@ class ToolboxAnnotationFileParser(pyannotation.data.AnnotationFileParser):
                 strTrans = line            
         return tree
 
-    def ilElementForString(self, text):
-        arrT = text.split(" ")
-        word = arrT[0]
-        il = ""
-        gloss = ""
-        if len(arrT) > 1:
-            il = arrT[1]
-        if len(arrT) > 2:
-            gloss = arrT[2]
-        ilElement = [ "a%i" % self.useNextAnnotationId(), word, [] ]
-        arrIl = re.split(self.MORPHEME_BOUNDARY_PARSE, il)
-        arrGloss = re.split(self.MORPHEME_BOUNDARY_PARSE, gloss)
-        for i in range(len(arrIl)):
-            g = ""
-            if i < len(arrGloss):
-                g = arrGloss[i]
-            arrG = re.split(self.GLOSS_BOUNDARY_PARSE, g)
-            arrG2 = []
-            for g2 in arrG:
-                arrG2.append([ "a%i" % self.useNextAnnotationId(), g2])
-            ilElement[2].append([ "a%i" % self.useNextAnnotationId(), arrIl[i], arrG2 ])
-        return ilElement
 
-    def getLastUsedAnnotationId(self):
-        return self.lastUsedAnnotationId
-
-    def useNextAnnotationId(self):
-        a = self.lastUsedAnnotationId
-        self.lastUsedAnnotationId = self.lastUsedAnnotationId + 1
-        return a
 
 
 

@@ -8,12 +8,13 @@ Elan's .eaf files, Kura's .xml file, Toolbox's .txt files etc.
 """
 
 __author__ =  'Peter Bouda'
-__version__=  '0.2.0'
+__version__=  '0.2.1'
 
 import os, glob
 import re
 
-(EAF, KURA, TOOLBOX) = range(3)
+# file types
+(EAF, EAFFROMTOOLBOX, KURA, TOOLBOX) = range(4)
 
 class AnnotationFileObject(object):
 
@@ -97,6 +98,7 @@ class AnnotationFileParser(object):
         self.WORD_BOUNDARY_PARSE = wordSep
         self.MORPHEME_BOUNDARY_PARSE = morphemeSep
         self.GLOSS_BOUNDARY_PARSE = glossSep
+        self.lastUsedAnnotationId = 0
 
     def parse(self):
         pass
@@ -119,7 +121,7 @@ class AnnotationFileParser(object):
             il = arrT[1]
         if len(arrT) > 2:
             gloss = arrT[2]
-        ilElement = [ "", word, [] ]
+        ilElement = [ "a%i" % self.useNextAnnotationId(), word, [] ]
         arrIl = re.split(self.MORPHEME_BOUNDARY_PARSE, il)
         arrGloss = re.split(self.MORPHEME_BOUNDARY_PARSE, gloss)
         for i in range(len(arrIl)):
@@ -129,9 +131,18 @@ class AnnotationFileParser(object):
             arrG = re.split(self.GLOSS_BOUNDARY_PARSE, g)
             arrG2 = []
             for g2 in arrG:
-                arrG2.append([ "", g2])
-            ilElement[2].append([ "", arrIl[i], arrG2 ])
+                arrG2.append([ "a%i" % self.useNextAnnotationId(), g2])
+            ilElement[2].append([ "a%i" % self.useNextAnnotationId(), arrIl[i], arrG2 ])
         return ilElement
+
+    def getLastUsedAnnotationId(self):
+        return self.lastUsedAnnotationId
+
+    def useNextAnnotationId(self):
+        a = self.lastUsedAnnotationId
+        self.lastUsedAnnotationId = self.lastUsedAnnotationId + 1
+        return a
+
 
 class AnnotationTree(object):
 

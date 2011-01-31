@@ -13,11 +13,10 @@ __version__=  '0.2.1'
 import os, glob
 import re
 from pyannotation.elan.data import EafAnnotationFileObject
+from pyannotation.elan.data import EafFromToolboxAnnotationFileObject
 from pyannotation.toolbox.data import ToolboxAnnotationFileObject
 from pyannotation.data import AnnotationTree
-
-# file types
-(EAF, EAFFROMTOOLBOX, KURA, TOOLBOX) = range(4)
+import pyannotation
 
 # interlinear types: WORDS means "no interlinear"
 (GLOSS, WORDS, POS) = range(3)
@@ -41,9 +40,11 @@ class CorpusReader(object):
 
     def addFile(self, filepath, filetype, locale = None, participant = None, utterancetierTypes = None, wordtierTypes = None, translationtierTypes = None, morphemetierTypes = None, glosstierTypes = None, postierTypes = None):
         annotationFileObject = None
-        if filetype == EAF:
+        if filetype == pyannotation.data.EAF:
             annotationFileObject = EafAnnotationFileObject(filepath)
-        elif filetype == TOOLBOX:
+        elif filetype == pyannotation.data.EAFFROMTOOLBOX:
+            annotationFileObject = EafFromToolboxAnnotationFileObject(filepath)
+        elif filetype == pyannotation.data.TOOLBOX:
             annotationFileObject = ToolboxAnnotationFileObject(filepath)
         if annotationFileObject != None:
             annotationTierHandler = annotationFileObject.createTierHandler()
@@ -57,36 +58,38 @@ class CorpusReader(object):
               annotationParser = annotationFileObject.createParserPos()
 
             annotationTree = AnnotationTree(annotationParser)
-            # Setting the tier types for the parse
-            if utterancetierTypes != None:
-                annotationTierHandler.setUtterancetierType(utterancetierTypes)
-            elif self.utterancetierTypes != None:
-                annotationTierHandler.setUtterancetierType(self.utterancetierTypes)
-
-            if wordtierTypes != None:
-                annotationTierHandler.setWordtierType(wordtierTypes)
-            elif self.wordtierTypes != None:
-                annotationTierHandler.setWordtierType(self.wordtierTypes)
-
-            if morphemetierTypes != None:
-                annotationTierHandler.setMorphemetierType(morphemetierTypes)
-            elif self.morphemetierTypes != None:
-                annotationTierHandler.setMorphemetierType(self.morphemetierTypes)
-
-            if glosstierTypes != None:
-                annotationTierHandler.setGlosstierType(glosstierTypes)
-            elif self.glosstierTypes != None:
-                annotationTierHandler.setGlosstierType(self.glosstierTypes)
-
-            if postierTypes != None:
-                annotationTierHandler.setPostierType(postierTypes)
-            elif self.postierTypes != None:
-                annotationTierHandler.setPostierType(self.postierTypes)
-
-            if translationtierTypes != None:
-                annotationTierHandler.setTranslationtierType(translationtierTypes)
-            elif self.translationtierTypes != None:
-                annotationTierHandler.setTranslationtierType(self.translationtierTypes)
+            
+            if filetype == pyannotation.data.EAF:
+                # Setting the tier types for the parse
+                if utterancetierTypes != None:
+                    annotationTierHandler.setUtterancetierType(utterancetierTypes)
+                elif self.utterancetierTypes != None:
+                    annotationTierHandler.setUtterancetierType(self.utterancetierTypes)
+    
+                if wordtierTypes != None:
+                    annotationTierHandler.setWordtierType(wordtierTypes)
+                elif self.wordtierTypes != None:
+                    annotationTierHandler.setWordtierType(self.wordtierTypes)
+    
+                if morphemetierTypes != None:
+                    annotationTierHandler.setMorphemetierType(morphemetierTypes)
+                elif self.morphemetierTypes != None:
+                    annotationTierHandler.setMorphemetierType(self.morphemetierTypes)
+    
+                if glosstierTypes != None:
+                    annotationTierHandler.setGlosstierType(glosstierTypes)
+                elif self.glosstierTypes != None:
+                    annotationTierHandler.setGlosstierType(self.glosstierTypes)
+    
+                if postierTypes != None:
+                    annotationTierHandler.setPostierType(postierTypes)
+                elif self.postierTypes != None:
+                    annotationTierHandler.setPostierType(self.postierTypes)
+    
+                if translationtierTypes != None:
+                    annotationTierHandler.setTranslationtierType(translationtierTypes)
+                elif self.translationtierTypes != None:
+                    annotationTierHandler.setTranslationtierType(self.translationtierTypes)
 
             annotationTree.parse()
             self.annotationtrees.append([filepath, annotationTree])
