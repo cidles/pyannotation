@@ -151,12 +151,15 @@ class AnnotationTree(object):
         self.builder = builder
         self.MORPHEME_BOUNDARY_BUILD = morphemeSep
         self.GLOSS_BOUNDARY_BUILD = glossSep
+        self.filters = []
+        self.filteredUtteranceIds = [[]]
 
     def getTree(self):
         return self.tree
 
     def parse(self):
         self.tree = self.builder.parse()
+        self.resetFilters()
 
     def getNextAnnotationId(self):
         return self.builder.getNextAnnotationId()
@@ -166,6 +169,9 @@ class AnnotationTree(object):
 
     def getUtteranceIds(self):
         return [utterance[0] for utterance in self.tree]
+
+    def getFilteredUtteranceIds(self):
+        return self.filteredUtteranceIds[-1]
 
     def getUtteranceIdsInTier(self, tierId=""):
         return [utterance[0] for utterance in self.tree if utterance[6] == tierId]
@@ -316,5 +322,150 @@ class AnnotationTree(object):
 
     def getAsEafXml(self, tierUtterances, tierWords, tierMorphemes, tierGlosses, tierTranslations):
         return self.builder.getAsEafXml(self.tree, tierUtterances, tierWords, tierMorphemes, tierGlosses, tierTranslations)
+        
+    def appendFilter(self, filter):
+        self.filters.append(filter)
+        newFilteredUtterances = [utterance[0] for utterance in self.tree if utterance[0] in self.filteredUtteranceIds[-1] and filter.utterancePassesFilter(utterance)]
+        self.filteredUtteranceIds.append(newFilteredUtterances)
+        
+    def popFilter(self, filter):
+        if len(self.filter) > 0:
+            self.filteredUtteranceIds.pop()
+            return self.filters.pop()
+        return None
+
+    def clearFilters(self):
+        self.filters = []
+        self.filteredUtteranceIds = [self.getUtteranceIds()]
+        
+    def resetFilters(self):
+        self.filteredUtteranceIds = [self.getUtteranceIds()]
+        for filter in self.filters:
+            newFilteredUtterances = [utterance[0] for utterance in self.tree if utterance[0] in self.filteredUtteranceIds[-1] and filter.utterancePassesFilter(utterance)]
+            self.filteredUtteranceIds.append(newFilteredUtterances)
 
 
+class AnnotationTreeFilter(object):
+
+    (AND, OR)  = range(2)
+    
+    def __init__(self):
+        self.filter = {
+            "participant": "",
+            "locale": "",
+            "utterance": "",
+            "word": "",
+            "morpheme": "",
+            "pos": "",
+            "gloss": "",
+            "translation": ""
+        }
+        self.resetMatchObject()
+        self.inverted = False
+        self.boolean_operation = self.AND
+        
+    def resetMatchObject(self):
+        self.matchobject = {
+            "utterance" : {},
+            "translation" : {},
+            "word" : {}
+        }
+        
+    def setParticipantFilter(self, string):
+        self.filter["participant"] = string
+        
+    def setLocaleFilter(self, string):
+        self.filter["locale"] = string
+        
+    def setUtteranceFilter(self, string):
+        self.filter["utterance"] = string
+        
+    def setWordFilter(self, string):
+        self.filter["word"] = string
+        
+    def setMorphemeFilter(self, string):
+        self.filter["moprheme"] = string
+        
+    def setPosFilter(self, string):
+        self.filter["pos"] = string
+        
+    def setGlossFilter(self, string):
+        self.filter["gloss"] = string
+        
+    def setTranslationFilter(self, string):
+        self.filter["translation"] = string
+        
+    def setInvertedFilter(self, inverted):
+        self.inverted = inverted
+        
+    def setBooleanOperation(self, type):
+        self.boolean_operation = type
+        
+    def utterancePassesFilter(self, ilElement):
+        utteranceMatch = False
+        translationMatch = False
+        wordMatch = False
+        morphemeMatch = False
+        glossMatch = False
+
+        # filter by utterance
+        if self.filter["utterance"] != "":
+            match = re.search(self.filter["utterance"], ilElement[1])
+            if match:
+                self.matchobject["utterance"][ilElement[0]] = [ [m.start(), m.end()] for m in re.finditer(self.filter["utterance"], ilElement[1]) ]
+                utteranceMatch = True
+        else:
+            utteranceMatch = True
+
+        # filter by translation
+        if self.filter["translation"] != "":
+            for translation in ilElement[3]:
+                match = re.search(self.filter["translation"], translation[1])
+                if match:
+                    self.matchobject["translation"][translation[0]] = [ [m.start(), m.end()] for m in re.finditer(self.filter["translation"], translation[1]) ]
+                    translationMatch = True
+        else:
+            translationMatch = True
+                
+        # filter by word
+        for word in ilElement[2]:
+            if self.filter["word"] != "":
+                match =  re.search(self.filter["word"], word[1])
+                if match:
+                    self.matchobject["word"][word[0]] = True
+                    wordMatch = True
+            else:
+                wordMatch = True
+                
+            # filter by morpheme
+            for morpheme in word[2]:
+                if self.filter["morpheme"] != "":
+                    match = re.search(self.filter["morpheme"], morpheme[1])
+                    if match:
+                        self.matchobject["word"][word[0]] = True   
+                        morphemeMatch = True
+                else:
+                    morphemeMatch = True
+                        
+                # filter by gloss
+                if self.filter["gloss"] != "":
+                    for gloss in morpheme[2]:
+                        match = re.search(self.filter["gloss"], gloss[1])
+                        if match:
+                            self.matchobject["word"][word[0]] = True
+                            glossMatch = True
+                else:
+                    glossMatch = True
+
+        ret = False
+        if self.boolean_operation == self.AND:
+            if utteranceMatch and translationMatch and wordMatch and morphemeMatch and glossMatch:
+                ret = True
+        elif self.boolean_operation == self.OR:
+            if utteranceMatch or translationMatch or wordMatch or morphemeMatch or glossMatch:
+                ret = True
+                
+        if self.inverted:
+            ret = not ret
+
+        return ret

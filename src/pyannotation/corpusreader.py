@@ -150,6 +150,7 @@ class CorpusReader(object):
                     sents.append((words, utterance[3]))
         return sents
 
+
 class PosCorpusReader(CorpusReader):
     """
     The class EafPosCorpusReader implements a part of the corpus reader API
@@ -452,7 +453,10 @@ class GlossCorpusReader(CorpusReader):
                                 tag.append((morpheme[1].encode("utf-8"), glosses))
                         words.append((word[1].encode("utf-8"), tag))
                 if len(words) > 0:
-                    sents.append((words, utterance[3]))
+                    for filter in self.filter:
+                        if not filter.elementPassesFilter((words, utterance[3]), self.interlineartype):
+                            break
+                    else:
+                        sents.append((words, utterance[3]))
         return sents
-
 
