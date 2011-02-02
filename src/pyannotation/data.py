@@ -12,6 +12,7 @@ __version__=  '0.2.1'
 
 import os, glob
 import re
+import regex
 
 # file types
 (EAF, EAFFROMTOOLBOX, KURA, TOOLBOX) = range(4)
@@ -328,8 +329,12 @@ class AnnotationTree(object):
         newFilteredUtterances = [utterance[0] for utterance in self.tree if utterance[0] in self.filteredUtteranceIds[-1] and filter.utterancePassesFilter(utterance)]
         self.filteredUtteranceIds.append(newFilteredUtterances)
         
-    def popFilter(self, filter):
-        if len(self.filter) > 0:
+    def updateLastFilter(self, filter):
+        self.popFilter()
+        self.appendFilter(filter)
+        
+    def popFilter(self):
+        if len(self.filters) > 0:
             self.filteredUtteranceIds.pop()
             return self.filters.pop()
         return None
@@ -363,6 +368,7 @@ class AnnotationTreeFilter(object):
         self.resetMatchObject()
         self.inverted = False
         self.boolean_operation = self.AND
+        self.contained_matches = False
         
     def resetMatchObject(self):
         self.matchobject = {
@@ -384,7 +390,7 @@ class AnnotationTreeFilter(object):
         self.filter["word"] = string
         
     def setMorphemeFilter(self, string):
-        self.filter["moprheme"] = string
+        self.filter["morpheme"] = string
         
     def setPosFilter(self, string):
         self.filter["pos"] = string
@@ -398,6 +404,9 @@ class AnnotationTreeFilter(object):
     def setInvertedFilter(self, inverted):
         self.inverted = inverted
         
+    def setContainedMatches(self, contained_matches):
+        self.contained_matches = contained_matches
+
     def setBooleanOperation(self, type):
         self.boolean_operation = type
         
@@ -408,54 +417,61 @@ class AnnotationTreeFilter(object):
         morphemeMatch = False
         glossMatch = False
 
+        # is there a filter defined?
+        if self.filter["utterance"] == "" and self.filter["translation"] == "" and self.filter["word"] == "" and self.filter["morpheme"] == "" and self.filter["gloss"] == "":
+            return True
+        
         # filter by utterance
         if self.filter["utterance"] != "":
-            match = re.search(self.filter["utterance"], ilElement[1])
+            match = regex.search(self.filter["utterance"], ilElement[1])
             if match:
-                self.matchobject["utterance"][ilElement[0]] = [ [m.start(), m.end()] for m in re.finditer(self.filter["utterance"], ilElement[1]) ]
+                self.matchobject["utterance"][ilElement[0]] = [ [m.start(), m.end()] for m in regex.finditer(self.filter["utterance"], ilElement[1]) ]
                 utteranceMatch = True
-        else:
+        elif self.boolean_operation == self.AND:
             utteranceMatch = True
 
         # filter by translation
         if self.filter["translation"] != "":
             for translation in ilElement[3]:
-                match = re.search(self.filter["translation"], translation[1])
+                match = regex.search(self.filter["translation"], translation[1])
                 if match:
-                    self.matchobject["translation"][translation[0]] = [ [m.start(), m.end()] for m in re.finditer(self.filter["translation"], translation[1]) ]
+                    self.matchobject["translation"][translation[0]] = [ [m.start(), m.end()] for m in regex.finditer(self.filter["translation"], translation[1]) ]
                     translationMatch = True
-        else:
+        elif self.boolean_operation == self.AND:
             translationMatch = True
                 
         # filter by word
         for word in ilElement[2]:
             if self.filter["word"] != "":
-                match =  re.search(self.filter["word"], word[1])
+                match =  regex.search(self.filter["word"], word[1])
                 if match:
                     self.matchobject["word"][word[0]] = True
                     wordMatch = True
-            else:
+                    
+            elif self.boolean_operation == self.AND:
                 wordMatch = True
-                
+            
             # filter by morpheme
-            for morpheme in word[2]:
-                if self.filter["morpheme"] != "":
-                    match = re.search(self.filter["morpheme"], morpheme[1])
-                    if match:
-                        self.matchobject["word"][word[0]] = True   
-                        morphemeMatch = True
-                else:
-                    morphemeMatch = True
-                        
-                # filter by gloss
-                if self.filter["gloss"] != "":
-                    for gloss in morpheme[2]:
-                        match = re.search(self.filter["gloss"], gloss[1])
+            if not self.contained_matches or wordMatch:
+                for morpheme in word[2]:
+                    if self.filter["morpheme"] != "":
+                        match = regex.search(self.filter["morpheme"], morpheme[1])
                         if match:
-                            self.matchobject["word"][word[0]] = True
+                            self.matchobject["word"][word[0]] = True   
+                            morphemeMatch = True
+                    elif self.boolean_operation == self.AND:
+                        morphemeMatch = True
+                            
+                    # filter by gloss
+                    if not self.contained_matches or morphemeMatch:
+                        if self.filter["gloss"] != "":
+                            for gloss in morpheme[2]:
+                                match = regex.search(self.filter["gloss"], gloss[1])
+                                if match:
+                                    self.matchobject["word"][word[0]] = True
+                                    glossMatch = True
+                        elif self.boolean_operation == self.AND:
                             glossMatch = True
-                else:
-                    glossMatch = True
 
         ret = False
         if self.boolean_operation == self.AND:

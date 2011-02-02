@@ -82,7 +82,7 @@ class EafFromToolboxAnnotationFileObject(pyannotation.data.AnnotationFileObject)
             self.tierHandler.setWordtierType("mo")
             self.tierHandler.setMorphemetierType("mo")
             self.tierHandler.setGlosstierType("gl")
-            self.tierHandler.setTranslationtierType("ft")
+            self.tierHandler.setTranslationtierType(["ft", "ot"])
         return self.tierHandler
 
     def createParser(self):
