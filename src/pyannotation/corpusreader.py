@@ -404,7 +404,7 @@ class GlossCorpusReader(CorpusReader):
         a list of (morpheme, list of glosses) tuples.
         """
         sents = []
-        for (infile, tree) in self.eaftrees:
+        for (infile, tree) in self.annotationtrees:
             for utterance in tree.getTree():
                 if self.locale != None and utterance[4] != self.locale:
                     continue

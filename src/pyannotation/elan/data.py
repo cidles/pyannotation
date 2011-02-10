@@ -15,9 +15,12 @@ __version__=  '0.2.1'
 
 import os, glob, re
 import pyannotation.data
+
 from copy import deepcopy
+
 from lxml import etree as ET
 from lxml.etree import Element
+from xml.parsers import expat
 
 
 ############################################# Builders
@@ -73,7 +76,7 @@ class EafFromToolboxAnnotationFileObject(pyannotation.data.AnnotationFileObject)
 
     def setFilepath(self, filepath):
         self.filepath = filepath
-        self.file = Eaf(self.filepath)
+        self.file = EafPythonic(self.filepath)
 
     def createTierHandler(self):
         if self.tierHandler == None:
@@ -560,7 +563,7 @@ class Eaf(object):
             ret = i
         return ret
 
-    def getLocaleForTier(self,  id):
+    def getLocaleForTier(self, id):
         locale = ''
         tier = self.tree.find("TIER[@TIER_ID='%s']" % id)
         if 'DEFAULT_LOCALE' in tier.attrib:
@@ -569,7 +572,7 @@ class Eaf(object):
                 locale = ''
         return locale
         
-    def getParticipantForTier(self,  id):
+    def getParticipantForTier(self, id):
         participant = ''
         tier = self.tree.find("TIER[@TIER_ID='%s']" % id)
         if 'PARTICIPANT' in tier.attrib:
@@ -777,3 +780,186 @@ class Eaf(object):
             else:
                 a.attrib['PREVIOUS_ANNOTATION'] = idPrevAnn
 
+
+class EafPythonic(object):
+    
+    def __init__(self, filename):
+        self.tiersDict = {}
+        self.alignableAnnotationsDict = {}
+        self.refAnnotationsDict = {}
+        self.linguistictypesDict = {}
+        
+        parser = Xml2Obj()
+        rootElement = parser.parse(filename)
+
+        for ltElement in rootElement.getElements("LINGUISTIC_TYPE"):
+            ta = False
+            idLt = ltElement.getAttribute("LINGUISTIC_TYPE_ID")
+            if ltElement.getAttribute("TIME_ALIGNABLE") == "true":
+                ta = True
+            self.linguistictypesDict[idLt] = ta
+
+        for tierElement in rootElement.getElements("TIER"):
+            idTier = tierElement.getAttribute("TIER_ID")
+            linguisticType = tierElement.getAttribute("LINGUISTIC_TYPE_REF")
+            timeAlignable = self.linguistictypesDict[linguisticType]
+            participant = tierElement.getAttribute("PARTICIPANT")
+            locale = tierElement.getAttribute("PARTICIPANT")
+            parent = tierElement.getAttribute("PARENT_REF")
+            
+            self.tiersDict[idTier] = {
+                'linguistic_type' : linguisticType,
+                'time_alignable' : timeAlignable,
+                'participant' : participant,
+                'locale' : locale,
+                'parent' : parent
+            }
+            
+            for annotationElement in tierElement.getElements("ANNOTATION"):
+                if timeAlignable:
+                    for alignableElement in annotationElement.getElements("ALIGNABLE_ANNOTATION"):
+                        idAnn = alignableElement.getAttribute("ANNOTATION_ID")
+                        ts1 = alignableElement.getAttribute("TIME_SLOT_REF1")
+                        ts2 = alignableElement.getAttribute("TIME_SLOT_REF2")
+                        value = alignableElement.getElements("ANNOTATION_VALUE")[0].getData()
+                        self.alignableAnnotationsDict[idAnn] = {
+                            'id' : idAnn,
+                            'tierId' : idTier,
+                            'ts1' : ts1,
+                            'ts2' : ts2,
+                            'value' : value
+                        }
+                else:
+                    for refElement in annotationElement.getElements("REF_ANNOTATION"):
+                        idAnn = refElement.getAttribute("ANNOTATION_ID")
+                        annRef = refElement.getAttribute("ANNOTATION_REF")
+                        prevAnn = refElement.getAttribute("PREVIOUS_ANNOTATION")
+                        value = refElement.getElements("ANNOTATION_VALUE")[0].getData()
+                        self.refAnnotationsDict[idAnn] = {
+                            'id' : idAnn,
+                            'tierId' : idTier,
+                            'annRef' : annRef,
+                            'prevAnn' : prevAnn,
+                            'value' : value
+                        }
+
+    def getLastUsedAnnotationId(self):
+        return 0
+
+    def getLocaleForTier(self, idTier):
+        return self.tiersDict[idTier]["locale"]
+
+    def getParticipantForTier(self, idTier):
+        return self.tiersDict[idTier]["participant"]
+
+    def getTierIdsForLinguisticType(self, type, parent = None):
+        return [ id for id in self.tiersDict
+                if self.tiersDict[id]["linguistic_type"] == type
+                and (parent == None or self.tiersDict[id]["parent"] == parent)]
+
+    def getRefAnnotationIdForAnnotationId(self, idTier, idAnnotation):
+        return self.refAnnotationsDict[idAnnotation]["annRef"]
+
+    def getRefAnnotationIdsForTier(self, idTier, annRef = None,  prevAnn = None):
+        return [ id for id in self.refAnnotationsDict
+                if self.refAnnotationsDict[id]["tierId"] == idTier
+                and (annRef == None or self.refAnnotationsDict[id]["annRef"] == annRef)
+                and (prevAnn == None or self.refAnnotationsDict[id]["prevAnn"] == prevAnn)]
+
+    def getAlignableAnnotationIdsForTier(self, idTier, startTs = None,  endTs = None):
+        return [ id for id in self.alignableAnnotationsDict
+                if self.alignableAnnotationsDict[id]["tierId"] == idTier
+                and (startTs == None or self.alignableAnnotationsDict[id]["ts1"] == startTs)
+                and (endTs == None or self.alignableAnnotationsDict[id]["ts2"] == endTs)]
+
+    def getStartTsForAnnotation(self, idTier, idAnn):
+        return self.alignableAnntotationsDict[idAnn]["ts1"]
+        
+    def getEndTsForAnnotation(self, idTier, idAnn):
+        return self.alignableAnntotationsDict[idAnn]["ts2"]
+
+    def getAnnotationValueForAnnotation(self, idTier, idAnn):
+        if self.tiersDict[idTier]["time_alignable"]:
+            return self.alignableAnnotationsDict[idAnn]["value"]
+        else:
+            return self.refAnnotationsDict[idAnn]["value"]
+
+    def getLinguisticTypeForTier(self, idTier):
+        return self.tiersDict[idTier]["linguistic_type"]
+
+    def getSubAnnotationIdsForAnnotationInTier(self, idAnn, idTier, idSubTier):
+        ret = []
+        if self.tiersDict[idSubTier]["time_alignable"]:
+            startTs = self.getStartTsForAnnotation(idTier, idAnn)
+            endTs = self.getEndTsForAnnotation(idTier, idAnn)
+            ret = self.getAlignableAnnotationIdsForTier(idSubTier, startTs, endTs)
+        else:
+            ret = self.getRefAnnotationIdsForTier(idSubTier, idAnn)
+        return ret
+
+class XmlElement(object):
+    ''' A parsed XML element '''
+    
+    def __init__(self, name, attributes):
+        # Record tagname and attributes dictionary
+        self.name = name
+        self.attributes = attributes
+        # Initialize the element's cdata and children to empty
+        self.cdata = ''
+        self.children = [  ]
+        
+    def addChild(self, element):
+        self.children.append(element)
+        
+    def getAttribute(self, key):
+        return self.attributes.get(key)
+        
+    def getData(self):
+        return self.cdata
+    
+    def getElements(self, name=''):
+        if name:
+            return [c for c in self.children if c.name == name]
+        else:
+            return list(self.children)
+
+class Xml2Obj(object):
+    
+    def __init__(self):
+        self.root = None
+        self.nodeStack = [  ]
+
+    def startElement(self, name, attributes):
+        'Expat start element event handler'
+        # Instantiate an Element object
+        element = XmlElement(name.encode( ), attributes)
+        # Push element onto the stack and make it a child of parent
+        if self.nodeStack:
+            parent = self.nodeStack[-1]
+            parent.addChild(element)
+        else:
+            self.root = element
+        self.nodeStack.append(element)
+
+    def endElement(self, name):
+        'Expat end element event handler'
+        self.nodeStack.pop( )
+
+    def characterData(self, data):
+        'Expat character data event handler'
+        if data.strip( ):
+            #data = data.decode("utf-8")
+            #data = data.encode( )
+            element = self.nodeStack[-1]
+            element.cdata += data
+
+    def parse(self, filename):
+        # Create an Expat parser
+        Parser = expat.ParserCreate("utf-8")
+        # Set the Expat event handlers to our methods
+        Parser.StartElementHandler = self.startElement
+        Parser.EndElementHandler = self.endElement
+        Parser.CharacterDataHandler = self.characterData
+        # Parse the XML File
+        ParserStatus = Parser.Parse(open(filename).read( ), 1)
+        return self.root
