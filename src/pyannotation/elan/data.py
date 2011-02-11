@@ -787,6 +787,7 @@ class EafPythonic(object):
         self.tiersDict = {}
         self.alignableAnnotationsDict = {}
         self.refAnnotationsDict = {}
+        self.refAnnotationsDictByTierAndAnnRef = {}
         self.linguistictypesDict = {}
         
         parser = Xml2Obj()
@@ -842,7 +843,12 @@ class EafPythonic(object):
                             'prevAnn' : prevAnn,
                             'value' : value
                         }
-
+                        idByTierAndAnnRef = "%s.%s" % (idTier, annRef)
+                        if idByTierAndAnnRef in self.refAnnotationsDictByTierAndAnnRef:
+                            self.refAnnotationsDictByTierAndAnnRef[idByTierAndAnnRef].append(idAnn)
+                        else:
+                            self.refAnnotationsDictByTierAndAnnRef[idByTierAndAnnRef] = [ idAnn ]
+                            
     def getLastUsedAnnotationId(self):
         return 0
 
@@ -861,10 +867,17 @@ class EafPythonic(object):
         return self.refAnnotationsDict[idAnnotation]["annRef"]
 
     def getRefAnnotationIdsForTier(self, idTier, annRef = None,  prevAnn = None):
-        return [ id for id in self.refAnnotationsDict
-                if self.refAnnotationsDict[id]["tierId"] == idTier
-                and (annRef == None or self.refAnnotationsDict[id]["annRef"] == annRef)
-                and (prevAnn == None or self.refAnnotationsDict[id]["prevAnn"] == prevAnn)]
+        if annRef != None and prevAnn == None:
+            idByTierIdAndAnnRef = "%s.%s" % (idTier, annRef)
+            if idByTierIdAndAnnRef in self.refAnnotationsDictByTierAndAnnRef:
+                return self.refAnnotationsDictByTierAndAnnRef[idByTierIdAndAnnRef]
+            else:
+                return []
+        else:
+            return [ id for id in self.refAnnotationsDict
+                    if self.refAnnotationsDict[id]["tierId"] == idTier
+                    and (annRef == None or self.refAnnotationsDict[id]["annRef"] == annRef)
+                    and (prevAnn == None or self.refAnnotationsDict[id]["prevAnn"] == prevAnn)]
 
     def getAlignableAnnotationIdsForTier(self, idTier, startTs = None,  endTs = None):
         return [ id for id in self.alignableAnnotationsDict
