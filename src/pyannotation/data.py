@@ -329,6 +329,12 @@ class AnnotationTree(object):
         newFilteredUtterances = [utterance[0] for utterance in self.tree if utterance[0] in self.filteredUtteranceIds[-1] and filter.utterancePassesFilter(utterance)]
         self.filteredUtteranceIds.append(newFilteredUtterances)
         
+    def lastFilter(self):
+        if len(self.filters) > 0:
+            return self.filters[-1]
+        else:
+            return AnnotationTreeFilter()
+        
     def updateLastFilter(self, filter):
         self.popFilter()
         self.appendFilter(filter)
