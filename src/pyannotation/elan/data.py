@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# (C) 2009 copyright by Peter Bouda
+# (C) 2011 copyright by Peter Bouda
 """This module contains classes to access Elan data.
 
 The class Eaf is a low level API to .eaf files.
@@ -9,9 +9,6 @@ tree, which also contains the original .eaf IDs. Because of this
 EafTrees are read-/writeable. 
 
 """
-
-__author__ =  'Peter Bouda'
-__version__=  '0.2.1'
 
 import os, glob, re
 import pyannotation.data

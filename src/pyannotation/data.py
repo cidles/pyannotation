@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
-# (C) 2009 copyright by Peter Bouda
+# (C) 2011 copyright by Peter Bouda
 """This module contains the classes to access annotated data in
 various formats.
 
 The parsing is done by Builder classes for each file type, i.e.
 Elan's .eaf files, Kura's .xml file, Toolbox's .txt files etc.
 """
-
-__author__ =  'Peter Bouda'
-__version__=  '0.2.1'
 
 import os, glob
 import re
