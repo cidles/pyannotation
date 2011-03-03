@@ -99,7 +99,7 @@ class CorpusReader(object):
         Returns a list of words from the corpus files.
         """
         words = []
-        for (infile, tree) in self.eaftrees:
+        for (infile, tree) in self.annotationtrees:
             for utterance in tree.getTree():
                 if self.locale != None and utterance[4] != self.locale:
                     continue
@@ -116,7 +116,7 @@ class CorpusReader(object):
         corpus files.
         """
         sents = []
-        for (infile, tree) in self.eaftrees:
+        for (infile, tree) in self.annotationtrees:
             for utterance in tree.getTree():
                 if self.locale != None and utterance[4] != self.locale:
                     continue
@@ -136,7 +136,7 @@ class CorpusReader(object):
         corpus files.
         """
         sents = []
-        for (infile, tree) in self.eaftrees:
+        for (infile, tree) in self.annotationtrees:
             for utterance in tree.getTree():
                 if self.locale != None and utterance[4] != self.locale:
                     continue
@@ -209,7 +209,7 @@ class PosCorpusReader(CorpusReader):
         parts of speech.
         """
         words = []
-        for (infile, tree) in self.eaftrees:
+        for (infile, tree) in self.annotationtrees:
             for utterance in tree.getTree():
                 if self.locale != None and utterance[4] != self.locale:
                     continue
@@ -229,7 +229,7 @@ class PosCorpusReader(CorpusReader):
         of parts of speech.
         """
         sents = []
-        for (infile, tree) in self.eaftrees:
+        for (infile, tree) in self.annotationtrees:
             for utterance in tree.getTree():
                 if self.locale != None and utterance[4] != self.locale:
                     continue
@@ -253,7 +253,7 @@ class PosCorpusReader(CorpusReader):
         parts of speech.
         """
         sents = []
-        for (infile, tree) in self.eaftrees:
+        for (infile, tree) in self.annotationtrees:
             for utterance in tree.getTree():
                 if self.locale != None and utterance[4] != self.locale:
                     continue
@@ -338,7 +338,7 @@ class GlossCorpusReader(CorpusReader):
         Returns a list of morphemes from the corpus files.
         """
         morphemes = []
-        for (infile, tree) in self.eaftrees:
+        for (infile, tree) in self.annotationtrees:
             for utterance in tree.getTree():
                 if self.locale != None and utterance[4] != self.locale:
                     continue
@@ -356,7 +356,7 @@ class GlossCorpusReader(CorpusReader):
         Returns a list of (morpheme, list of glosses) tuples.
         """
         morphemes = []
-        for (infile, tree) in self.eaftrees:
+        for (infile, tree) in self.annotationtrees:
             for utterance in tree.getTree():
                 if self.locale != None and utterance[4] != self.locale:
                     continue
@@ -379,7 +379,7 @@ class GlossCorpusReader(CorpusReader):
         (morpheme, list of glosses) tuples.
         """
         words = []
-        for (infile, tree) in self.eaftrees:
+        for (infile, tree) in self.annotationtrees:
             for utterance in tree.getTree():
                 if self.locale != None and utterance[4] != self.locale:
                     continue
@@ -433,7 +433,7 @@ class GlossCorpusReader(CorpusReader):
         (morpheme, list of glosses) tuples.
         """
         sents = []
-        for (infile, tree) in self.eaftrees:
+        for (infile, tree) in self.annotationtrees:
             for utterance in tree.getTree():
                 if self.locale != None and utterance[4] != self.locale:
                     continue
@@ -453,10 +453,6 @@ class GlossCorpusReader(CorpusReader):
                                 tag.append((morpheme[1].encode("utf-8"), glosses))
                         words.append((word[1].encode("utf-8"), tag))
                 if len(words) > 0:
-                    for filter in self.filter:
-                        if not filter.elementPassesFilter((words, utterance[3]), self.interlineartype):
-                            break
-                    else:
-                        sents.append((words, utterance[3]))
+                    sents.append((words, utterance[3]))
         return sents
 

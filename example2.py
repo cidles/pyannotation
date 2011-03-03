@@ -1,4 +1,4 @@
-# (C) 2009 copyright by Peter Bouda
+# (C) 2011 copyright by Peter Bouda
 # -*- coding: utf-8 -*-
 
 import pyannotation.kura.data

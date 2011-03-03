@@ -13,7 +13,7 @@ for f in files:
 
 # find all (unique) sentences that contain a morpheme with gloss "ANOM"
 print "\nfind all (unique) sentences that contain a morpheme with gloss \"ANOM\":"
-result = [s for s in cr.taggedSents() for (word, tag) in s for (morphem, gloss) in tag if 'ANOM' in gloss and s not in locals()['_[1]']]
+result = [s for s in cr.taggedSents() for (word, tag) in s for (morphem, gloss) in tag if 'ANOM' in gloss]
 print result
 
 # get a list of sentences from the result
