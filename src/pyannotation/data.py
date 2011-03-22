@@ -28,7 +28,7 @@ class AnnotationFileObject(object):
 
     def setFilepath(self):
         pass
-
+    
     def createTierHandler(self):
         if self.tierHandler == None:
             self.tierHandler = AnnotationFileTierHandler(self)

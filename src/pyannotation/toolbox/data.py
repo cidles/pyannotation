@@ -1,4 +1,4 @@
-# (C) 2009 copyright by Peter Bouda
+# (C) 2011 copyright by Peter Bouda
 # -*- coding: utf-8 -*-
 """This module contains classes to access Toolbox data.
 
@@ -12,9 +12,6 @@ described in the Natural Language Toolkit (NLTK):
 http://nltk.googlecode.com/svn/trunk/doc/howto/corpus.html
 """
 
-__author__ =  'Peter Bouda'
-__version__=  '0.2.1'
-
 import re
 import pyannotation.data
 
@@ -22,9 +19,10 @@ import pyannotation.data
 
 class ToolboxAnnotationFileObject(pyannotation.data.AnnotationFileObject):
 
-    def __init__(self, filepath):
+    def __init__(self, filepath, encoding = "utf-8"):
         pyannotation.data.AnnotationFileObject.__init__(self, filepath)
         self.setFilepath(filepath)
+        self.encoding = encoding
 
     def getFile(self):
         return self.filepath
@@ -58,7 +56,7 @@ class ToolboxAnnotationFileParser(pyannotation.data.AnnotationFileParser):
         strTrans = ""
         tree = []    
         for line in f:
-            line = unicode(line, "iso-8859-1")
+            line = unicode(line, self.annotationFileObject.encoding)
             if re.search(r"^\\ref ", line):
                 # new ref starts, so process data
                 if strInRef != "":
