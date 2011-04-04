@@ -390,7 +390,7 @@ class EafFromToolboxAnnotationFileParser(pyannotation.data.AnnotationFileParser)
             utterancesIds = self.eaf.getAlignableAnnotationIdsForTier(uTier) + self.eaf.getRefAnnotationIdsForTier(uTier)
             for uId in utterancesIds:
                 utterance = self.eaf.getAnnotationValueForAnnotation(uTier, uId)
-                utterance = re.sub(r" +", " ", utterance)
+                utterance = re.sub(r"[\n\r\t ]+", " ", utterance)
 
                 refId = self.eaf.getRefAnnotationIdForAnnotationId(uTier, uId)
                 toolboxId = self.eaf.getAnnotationValueForAnnotation("ref", refId)
@@ -439,6 +439,8 @@ class EafFromToolboxAnnotationFileParser(pyannotation.data.AnnotationFileParser)
                     ilElements = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
 
                 tree.append([ toolboxId,  utterance,  ilElements, translations, locale, participant, uTier ])
+                
+        tree.sort()
         return tree
 
 ####################################### Files
@@ -867,20 +869,26 @@ class EafPythonic(object):
         if annRef != None and prevAnn == None:
             idByTierIdAndAnnRef = "%s.%s" % (idTier, annRef)
             if idByTierIdAndAnnRef in self.refAnnotationsDictByTierAndAnnRef:
-                return self.refAnnotationsDictByTierAndAnnRef[idByTierIdAndAnnRef]
+                ret = self.refAnnotationsDictByTierAndAnnRef[idByTierIdAndAnnRef]
+                #ret.sort()
+                return ret
             else:
                 return []
         else:
-            return [ id for id in self.refAnnotationsDict
+            ret = [ id for id in self.refAnnotationsDict
                     if self.refAnnotationsDict[id]["tierId"] == idTier
                     and (annRef == None or self.refAnnotationsDict[id]["annRef"] == annRef)
                     and (prevAnn == None or self.refAnnotationsDict[id]["prevAnn"] == prevAnn)]
+            #ret.sort()
+            return ret
 
     def getAlignableAnnotationIdsForTier(self, idTier, startTs = None,  endTs = None):
-        return [ id for id in self.alignableAnnotationsDict
+        ret = [ id for id in self.alignableAnnotationsDict
                 if self.alignableAnnotationsDict[id]["tierId"] == idTier
                 and (startTs == None or self.alignableAnnotationsDict[id]["ts1"] == startTs)
                 and (endTs == None or self.alignableAnnotationsDict[id]["ts2"] == endTs)]
+        #ret.sort()
+        return ret
 
     def getStartTsForAnnotation(self, idTier, idAnn):
         return self.alignableAnntotationsDict[idAnn]["ts1"]
@@ -957,7 +965,7 @@ class Xml2Obj(object):
 
     def characterData(self, data):
         'Expat character data event handler'
-        if data.strip( ):
+        if data: # .strip( )
             #data = data.decode("utf-8")
             #data = data.encode( )
             element = self.nodeStack[-1]
