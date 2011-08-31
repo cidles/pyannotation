@@ -1,4 +1,4 @@
-# (C) 2009 copyright by Peter Bouda
+# (C) 2011 copyright by Peter Bouda
 # -*- coding: utf-8 -*-
 """This module contains classes to access Kura data.
 
@@ -13,12 +13,9 @@ described in the Natural Language Toolkit (NLTK):
 http://nltk.googlecode.com/svn/trunk/doc/howto/corpus.html
 """
 
-__author__ =  'Peter Bouda'
-__version__=  '0.1.2'
 
-
-from lxml import etree
-from lxml.etree import Element
+from xml import etree
+from xml.etree.ElementTree import Element
 
 class KuraTree(object):
 
@@ -68,11 +65,11 @@ class KuraTree(object):
 class KuraXML(object):
 
     def __init__(self, file):
-        self.tree = etree.parse(file)
+        self.tree = etree.ElementTree.parse(file)
 
         # phrases and words and morphs with ids
         aid = self.getLastUsedAnnotationId()
-        items = self.tree.findall("//phrase") + self.tree.findall("//word") + self.tree.findall("//morph")
+        items = self.tree.findall(".//phrase") + self.tree.findall(".//word") + self.tree.findall(".//morph")
         for i in items:
             if not 'id' in i.attrib:
                 i.set('id', "a%i" % aid)
@@ -80,7 +77,7 @@ class KuraXML(object):
 
     def getLastUsedAnnotationId(self):
         aid = 0
-        items = self.tree.findall("//phrase") + self.tree.findall("//word") + self.tree.findall("//morph")
+        items = self.tree.findall(".//phrase") + self.tree.findall(".//word") + self.tree.findall(".//morph")
         for i in items:
             if 'id' in i.attrib and int(i.attrib['id']) > aid:
                 aid = int(i.attrib['id'])

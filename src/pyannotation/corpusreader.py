@@ -7,9 +7,6 @@ Language Toolkit (NLTK):
 http://nltk.googlecode.com/svn/trunk/doc/howto/corpus.html
 """
 
-__author__ =  'Peter Bouda'
-__version__=  '0.2.1'
-
 import os, glob
 import re
 from pyannotation.elan.data import EafAnnotationFileObject
@@ -107,7 +104,7 @@ class CorpusReader(object):
                     continue
                 for word in utterance[2]:
                     if len(word) > 0:
-                        words.append(word[1].encode("utf-8"))
+                        words.append(word[1])
         return words
 
     def sents(self):
@@ -125,7 +122,7 @@ class CorpusReader(object):
                 words = []
                 for word in utterance[2]:
                     if len(word) > 0:
-                        words.append(word[1].encode("utf-8"))
+                        words.append(word[1])
                 if len(words) > 0:
                     sents.append(words)
         return sents
@@ -145,7 +142,7 @@ class CorpusReader(object):
                 words = []
                 for word in utterance[2]:
                     if len(word) > 0:
-                        words.append(word[1].encode("utf-8"))
+                        words.append(word[1])
                 if len(words) > 0:
                     sents.append((words, utterance[3]))
         return sents
@@ -220,7 +217,7 @@ class PosCorpusReader(CorpusReader):
                         tag = []
                         for (id, pos) in word[2]:
                             tag.append(pos)
-                        words.append((word[1].encode('utf-8'), tag))
+                        words.append((word[1], tag))
         return words
 
     def taggedSents(self):
@@ -241,7 +238,7 @@ class PosCorpusReader(CorpusReader):
                         tag = []
                         for id, pos in word[2]:
                             tag.append(pos)
-                        words.append((word[1].encode('utf-8'), tag))
+                        words.append((word[1], tag))
                 if len(words) > 0:
                     sents.append(words)
         return sents
@@ -265,7 +262,7 @@ class PosCorpusReader(CorpusReader):
                         tag = []
                         for id, pos in word[2]:
                             tag.append(pos)
-                        words.append((word[1].encode('utf-8'), tag))
+                        words.append((word[1], tag))
                 if len(words) > 0:
                     sents.append((words, utterance[3]))
         return sents
@@ -348,7 +345,7 @@ class GlossCorpusReader(CorpusReader):
                     if len(word) > 0:
                         for morpheme in word[2]:
                             if morpheme[1] != '':
-                                morphemes.append(morpheme[1].encode("utf-8"))
+                                morphemes.append(morpheme[1])
         return morphemes
 
     def taggedMorphemes(self):
@@ -369,8 +366,8 @@ class GlossCorpusReader(CorpusReader):
                                 glosses = []
                                 for gloss in morpheme[2]:
                                     if gloss[1] != '':
-                                        glosses.append(gloss[1].encode("utf-8"))
-                                morphemes.append((morpheme[1].encode("utf-8"), glosses))
+                                        glosses.append(gloss[1])
+                                morphemes.append((morpheme[1], glosses))
         return morphemes
         
     def taggedWords(self):
@@ -393,9 +390,9 @@ class GlossCorpusReader(CorpusReader):
                                 glosses = []
                                 for gloss in morpheme[2]:
                                     if gloss[1] != '':
-                                        glosses.append(gloss[1].encode("utf-8"))
-                                tag.append((morpheme[1].encode("utf-8"), glosses))
-                        words.append((word[1].encode("utf-8"), tag))
+                                        glosses.append(gloss[1])
+                                tag.append((morpheme[1], glosses))
+                        words.append((word[1], tag))
         return words
 
     def taggedSents(self):
@@ -419,9 +416,9 @@ class GlossCorpusReader(CorpusReader):
                                 glosses = []
                                 for gloss in morpheme[2]:
                                     if gloss[1] != '':
-                                        glosses.append(gloss[1].encode("utf-8"))
-                                tag.append((morpheme[1].encode("utf-8"), glosses))
-                        words.append((word[1].encode("utf-8"), tag))
+                                        glosses.append(gloss[1])
+                                tag.append((morpheme[1], glosses))
+                        words.append((word[1], tag))
                 if len(words) > 0:
                     sents.append(words)
         return sents
@@ -449,9 +446,9 @@ class GlossCorpusReader(CorpusReader):
                                 glosses = []
                                 for gloss in morpheme[2]:
                                     if gloss[1] != '':
-                                        glosses.append(gloss[1].encode("utf-8"))
-                                tag.append((morpheme[1].encode("utf-8"), glosses))
-                        words.append((word[1].encode("utf-8"), tag))
+                                        glosses.append(gloss[1])
+                                tag.append((morpheme[1], glosses))
+                        words.append((word[1], tag))
                 if len(words) > 0:
                     sents.append((words, utterance[3]))
         return sents

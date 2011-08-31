@@ -15,12 +15,13 @@ import pyannotation.data
 
 from copy import deepcopy
 
-from lxml import etree as ET
-from lxml.etree import Element
+from xml.etree import ElementTree as ET
+from xml.etree.ElementTree import Element
 from xml.parsers import expat
 
 
 ############################################# Builders
+import operator
 
 class EafAnnotationFileObject(pyannotation.data.AnnotationFileObject):
 
@@ -96,12 +97,12 @@ class EafAnnotationFileTierHandler(pyannotation.data.AnnotationFileTierHandler):
     def __init__(self, annotationFileObject):
         pyannotation.data.AnnotationFileTierHandler.__init__(self, annotationFileObject)
         self.eaf = annotationFileObject.getFile()
-        self.UTTERANCETIER_TYPEREFS = [ "utterance", "utterances", u"Äußerung", u"Äußerungen" ]
-        self.WORDTIER_TYPEREFS = [ "words", "word", "Wort", "Worte", u"Wörter" ]
+        self.UTTERANCETIER_TYPEREFS = [ "utterance", "utterances", "Äußerung", "Äußerungen" ]
+        self.WORDTIER_TYPEREFS = [ "words", "word", "Wort", "Worte", "Wörter" ]
         self.MORPHEMETIER_TYPEREFS = [ "morpheme", "morphemes",  "Morphem", "Morpheme" ]
         self.GLOSSTIER_TYPEREFS = [ "glosses", "gloss", "Glossen", "Gloss", "Glosse" ]
         self.POSTIER_TYPEREFS = [ "part of speech", "parts of speech", "Wortart", "Wortarten" ]
-        self.TRANSLATIONTIER_TYPEREFS = [ "translation", "translations", u"Übersetzung",  u"Übersetzungen" ]
+        self.TRANSLATIONTIER_TYPEREFS = [ "translation", "translations", "Übersetzung",  "Übersetzungen" ]
 
     def setUtterancetierType(self, type):
         if isinstance(type, list):
@@ -204,9 +205,12 @@ class EafAnnotationFileParser(pyannotation.data.AnnotationFileParser):
         return self.lastUsedAnnotationId
 
     def parse(self):
+        """
+        
+        """
         tree = []
         self.utteranceTierIds = self.tierBuilder.getUtterancetierIds()
-        if self.utteranceTierIds != []:
+        if self.utteranceTierIds:
             for uTier in self.utteranceTierIds:
                 utterancesIds = self.eaf.getAlignableAnnotationIdsForTier(uTier) + self.eaf.getRefAnnotationIdsForTier(uTier)
                 for uId in utterancesIds:
@@ -227,7 +231,7 @@ class EafAnnotationFileParser(pyannotation.data.AnnotationFileParser):
                         wordsIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, wTier)
                         for wordId in wordsIds:
                             ilElements.append(self.getIlElementForWordId(wordId, wTier))
-                        if len(ilElements) == 0:
+                        if not ilElements:
                             ilElements = self.emptyIlElement
                     tree.append([ uId,  utterance,  ilElements, translations, locale, participant, uTier ])
         else: # if self.utterancesTiers != []
@@ -715,7 +719,7 @@ class Eaf(object):
             if id:
                 ts[id] = iAStartTs
         # sort ids via start timestamp
-        alist = sorted(ts.iteritems(), key=lambda (k,v): (v,k))
+        alist = sorted(ts.items(), key=operator.itemgetter(1))
         for k, v in alist:
             ret.append(k)
         return ret
