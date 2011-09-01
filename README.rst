@@ -13,7 +13,6 @@ REQUIREMENTS
 You need to install the following packages:
 
 - Python: http://python.org/download
-- lxml: http://codespeak.net/lxml/index.html#download
 - If you want to process data with NLTK: http://www.nltk.org/download
 
 
