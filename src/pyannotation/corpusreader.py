@@ -16,7 +16,7 @@ from pyannotation.data import AnnotationTree
 import pyannotation
 
 # interlinear types: WORDS means "no interlinear"
-(GLOSS, WORDS, POS) = range(3)
+(GLOSS, WORDS, GRAID) = range(3)
 
 class CorpusReader(object):
     """
@@ -48,11 +48,9 @@ class CorpusReader(object):
 
             # create the parser
             if self.interlineartype == GLOSS:
-              annotationParser = annotationFileObject.createParser()
+              annotationParser = annotationFileObject.createParserMorphsynt()
             elif self.interlineartype == WORDS:
               annotationParser = annotationFileObject.createParserWords()
-            elif self.interlineartype == POS:
-              annotationParser = annotationFileObject.createParserPos()
 
             annotationTree = AnnotationTree(annotationParser)
             

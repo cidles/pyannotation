@@ -44,21 +44,10 @@ class EafAnnotationFileObject(pyannotation.data.AnnotationFileObject):
             self.tierHandler = EafAnnotationFileTierHandler(self)
         return self.tierHandler
 
-    def createParser(self):
+    def createParserMorphsynt(self):
         if self.parser == None:
-            self.parser = EafAnnotationFileParser(self, self.createTierHandler())
+            self.parser = EafAnnotationFileParserMorphsynt(self, self.createTierHandler())
         return self.parser
-
-    def createParserWords(self):
-        if self.parser == None:
-            self.parser = EafAnnotationFileParserWords(self, self.createTierHandler())
-        return self.parser
-
-    def createParserPos(self):
-        if self.parser == None:
-            self.parser = EafAnnotationFileParserPos(self, self.createTierHandler())
-        return self.parser
-
 
 class EafFromToolboxAnnotationFileObject(pyannotation.data.AnnotationFileObject):
 
@@ -86,9 +75,9 @@ class EafFromToolboxAnnotationFileObject(pyannotation.data.AnnotationFileObject)
             self.tierHandler.setTranslationtierType(["ft", "ot"])
         return self.tierHandler
 
-    def createParser(self):
+    def createParserMorphsynt(self):
         if self.parser == None:
-            self.parser = EafFromToolboxAnnotationFileParser(self, self.createTierHandler())
+            self.parser = EafFromToolboxAnnotationFileParserMorphsynt(self, self.createTierHandler())
         return self.parser
 
 
@@ -102,6 +91,9 @@ class EafAnnotationFileTierHandler(pyannotation.data.AnnotationFileTierHandler):
         self.MORPHEMETIER_TYPEREFS = [ "morpheme", "morphemes",  "Morphem", "Morpheme" ]
         self.GLOSSTIER_TYPEREFS = [ "glosses", "gloss", "Glossen", "Gloss", "Glosse" ]
         self.POSTIER_TYPEREFS = [ "part of speech", "parts of speech", "Wortart", "Wortarten" ]
+        self.WFWTRANSLATIONTIER_TYPEREFS = [ "wfwtranslation" ]
+        self.GRAID1TIER_TYPEREFS = [ "graid1" ]
+        self.GRAID2TIER_TYPEREFS = [ "graid2" ]
         self.TRANSLATIONTIER_TYPEREFS = [ "translation", "translations", "Übersetzung",  "Übersetzungen" ]
 
     def setUtterancetierType(self, type):
@@ -133,6 +125,24 @@ class EafAnnotationFileTierHandler(pyannotation.data.AnnotationFileTierHandler):
             self.POSTIER_TYPEREFS = type
         else:
             self.POSTIER_TYPEREFS = [type]
+
+    def setWfwtierType(self, type):
+        if isinstance(type, list):
+            self.WFWTRANSLATIONTIER_TYPEREFS = type
+        else:
+            self.WFWTRANSLATIONTIER_TYPEREFS = [type]
+
+    def setGraid1tierType(self, type):
+        if isinstance(type, list):
+            self.GRAID1TIER_TYPEREFS = type
+        else:
+            self.GRAID1TIER_TYPEREFS = [type]
+
+    def setGraid2tierType(self, type):
+        if isinstance(type, list):
+            self.GRAID2TIER_TYPEREFS = type
+        else:
+            self.GRAID2TIER_TYPEREFS = [type]
 
     def setTranslationtierType(self, type):
         if isinstance(type, list):
@@ -176,6 +186,24 @@ class EafAnnotationFileTierHandler(pyannotation.data.AnnotationFileTierHandler):
             ret.extend(self.eaf.getTierIdsForLinguisticType(type, parent))
         return ret
 
+    def getGraid1tierIds(self, parent = None):
+        ret = []
+        for type in self.GRAID1TIER_TYPEREFS:
+            ret.extend(self.eaf.getTierIdsForLinguisticType(type, parent))
+        return ret
+
+    def getGraid2tierIds(self, parent = None):
+        ret = []
+        for type in self.GRAID2TIER_TYPEREFS:
+            ret.extend(self.eaf.getTierIdsForLinguisticType(type, parent))
+        return ret
+
+    def getWfwtierIds(self, parent = None):
+        ret = []
+        for type in self.WFWTRANSLATIONTIER_TYPEREFS:
+            ret.extend(self.eaf.getTierIdsForLinguisticType(type, parent))
+        return ret
+
     def addTier(self, tierId, tierType, tierTypeConstraint, parentTier, tierDefaultLocale, tierParticipant):
         self.eaf.addTier(tierId, tierType, parentTier, tierDefaultLocale, tierParticipant)
         if not self.eaf.hasLinguisticType(tierType):
@@ -195,78 +223,99 @@ class EafAnnotationFileParser(pyannotation.data.AnnotationFileParser):
         self.tierBuilder = annotationFileTiers
         self.eaf = annotationFileObject.getFile()
         self.lastUsedAnnotationId = self.eaf.getLastUsedAnnotationId()
-        self.emptyIlElement = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
-
-    def setFile(self, file):
-        self.file = file
+        self.emptyIlElement = [ '', '', '' ]
 
     def getNextAnnotationId(self):
         self.lastUsedAnnotationId = self.lastUsedAnnotationId + 1
         return self.lastUsedAnnotationId
 
+    def removeAnnotationWithId(self, idAnnotation):
+        self.eaf.removeAnnotationWithId(idAnnotation)
+
+    def removeAnnotationsWithRef(self, idRefAnn):
+        self.eaf.removeAnnotationsWithRef(idRefAnn)
+
+    def updatePrevAnnotationForAnnotation(self, idAnnotation, idPrevAnn = None):
+        self.eaf.updatePrevAnnotationForAnnotation(idAnnotation, idPrevAnn)
+
+    def _utterancesIds(self):
+        utteranceTierIds = self.tierBuilder.getUtterancetierIds()
+        return( (uId, uTier) for uTier in utteranceTierIds
+                           for uId in (self.eaf.getAlignableAnnotationIdsForTier(uTier) +
+                                       self.eaf.getRefAnnotationIdsForTier(uTier))
+        )
+
+    def utterances(self):
+        return ( (uId, self.eaf.getAnnotationValueForAnnotation(uTier, uId), uTier) \
+            for uId, uTier in self._utterancesIds() )
+
+    def _translationsForUtterance(self, uTier, uId):
+        translations = []
+        translationTierIds = self.tierBuilder.getTranslationtierIds(uTier)
+        for tTier in translationTierIds:
+            transIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, tTier)
+            for transId in transIds:
+                trans = self.eaf.getAnnotationValueForAnnotation(tTier, transId)
+                if trans != '':
+                    translations.append([transId, trans, tTier])
+        return translations
+
+    def _annotationsForUtterance(self, uTier, uId):
+        translations = self._translationsForUtterance(uTier, uId)
+        return [ translations ]
+
+    def _ilelementsForUtterance(self, uTier, uId):
+        ilelements = []
+        wordTierIds = self.tierBuilder.getWordtierIds(uTier)
+        for wTier in wordTierIds:
+            wordsIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, wTier)
+            for wordId in wordsIds:
+                word = self.eaf.getAnnotationValueForAnnotation(wTier, wordId)
+                ilelements.append([wordId, word, wTier])
+        return ilelements
+
     def parse(self):
-        """
-        
-        """
         tree = []
-        self.utteranceTierIds = self.tierBuilder.getUtterancetierIds()
-        if self.utteranceTierIds:
-            for uTier in self.utteranceTierIds:
-                utterancesIds = self.eaf.getAlignableAnnotationIdsForTier(uTier) + self.eaf.getRefAnnotationIdsForTier(uTier)
-                for uId in utterancesIds:
-                    utterance = self.eaf.getAnnotationValueForAnnotation(uTier, uId)
-                    translations = []
-                    ilElements = []
-                    locale = self.eaf.getLocaleForTier(uTier)
-                    participant = self.eaf.getParticipantForTier(uTier)
-                    translationTierIds = self.tierBuilder.getTranslationtierIds(uTier)
-                    for tTier in translationTierIds:
-                        transIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, tTier)
-                        for transId in transIds:
-                            trans = self.eaf.getAnnotationValueForAnnotation(tTier, transId)
-                            if trans != '':
-                                translations.append([transId, trans])
-                    wordTierIds = self.tierBuilder.getWordtierIds(uTier)
-                    for wTier in wordTierIds:
-                        wordsIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, wTier)
-                        for wordId in wordsIds:
-                            ilElements.append(self.getIlElementForWordId(wordId, wTier))
-                        if not ilElements:
-                            ilElements = self.emptyIlElement
-                    tree.append([ uId,  utterance,  ilElements, translations, locale, participant, uTier ])
-        else: # if self.utterancesTiers != []
-            for wTier in self.tierBuilder.getWordtierIds():
-                translations = []
-                locale = self.eaf.getLocaleForTier(wTier)
-                participant = self.eaf.getParticipantForTier(wTier)
-                wordsIds = self.eaf.getAnnotationIdsForTier(wTier)
-                for wordId in wordsIds:
-                    ilElements.append(self.getIlElementForWordId(wordId, wTier))   
-                if len(ilElements) == 0:
-                    ilElements = self.emptyIlElement
-                tree.append([ '',  '',  ilElements, translations, locale, participant, '' ])
+        for uId, utterance, uTier in self.utterances():
+            ilElements = []
+            locale = self.eaf.getLocaleForTier(uTier)
+            participant = self.eaf.getParticipantForTier(uTier)
+
+            utterance_annotations = self._annotationsForUtterance(uTier, uId)
+            ilelements = self._ilelementsForUtterance(uTier, uId)
+            if not ilelements:
+                ilelements = self.emptyIlElement
+
+            tree.append([ uId,  utterance, ilelements, utterance_annotations, locale, participant, uTier ])
+
         return tree
 
-    def getIlElementForWordId(self, id, wTier):
+class EafAnnotationFileParserMorphsynt(EafAnnotationFileParser):
+
+    def __init__(self, annotationFileObject, annotationFileTiers):
+        EafAnnotationFileParser.__init__(self, annotationFileObject, annotationFileTiers)
+        self.emptyIlElement = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
+
+    def _morphemesForWord(self, wTier, wId):
         ilElement = []
-        word = self.eaf.getAnnotationValueForAnnotation(wTier, id)
-        ilElement.append(id)
+        word = self.eaf.getAnnotationValueForAnnotation(wTier, wId)
+        ilElement.append(wId)
         ilElement.append(word)
         morphElements = []
         morphemeTierIds = self.tierBuilder.getMorphemetierIds(wTier)
         for mTier in morphemeTierIds:
-            morphIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(id, wTier, mTier)
+            morphIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(wId, wTier, mTier)
             for morphId in morphIds:
-                morphElements.append(self.getFuncElementForMorphemeId(morphId, mTier))
+                morphElements.append(self._funcsForMorpheme(mTier, morphId))
         if len(morphElements) == 0:
             ilElement.append([[ '',  '',  [ ['',  ''] ]]])
         else:
             ilElement.append(morphElements)
         return ilElement
 
-    def getFuncElementForMorphemeId(self, morphId, mTier):
+    def _funcsForMorpheme(self, mTier, mId):
         ilElement = []
-        morpheme = self.eaf.getAnnotationValueForAnnotation(mTier, morphId)
+        morpheme = self.eaf.getAnnotationValueForAnnotation(mTier, mId)
         morpheme = re.sub(r'^-', '', morpheme)
         morpheme = re.sub(r'-$', '', morpheme)
         ilElement.append(morphId)
@@ -274,7 +323,7 @@ class EafAnnotationFileParser(pyannotation.data.AnnotationFileParser):
         funcElements = []
         glossTierIds = self.tierBuilder.getGlosstierIds(mTier)
         for gTier in glossTierIds:
-            funcIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(morphId, mTier, gTier)
+            funcIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(mId, mTier, gTier)
             for funcId in funcIds:
                 function = self.eaf.getAnnotationValueForAnnotation(gTier, funcId)
                 function = re.sub(r'^-', '', function)
@@ -287,35 +336,36 @@ class EafAnnotationFileParser(pyannotation.data.AnnotationFileParser):
             ilElement.append(funcElements)
         return ilElement
 
-    def removeAnnotationWithId(self, idAnnotation):
-        self.eaf.removeAnnotationWithId(idAnnotation)
+    def _ilelementsForUtterance(self, uTier, uId):
+        ilelements = []
+        wordTierIds = self.tierBuilder.getWordtierIds(uTier)
+        for wTier in wordTierIds:
+            wordsIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, wTier)
+            for wordId in wordsIds:
+                #word = self.eaf.getAnnotationValueForAnnotation(wTier, wordId)
+                ilelements.append(self._morphemesForWord(wTier, wordId))
+        return ilelements
 
-    def removeAnnotationsWithRef(self, idRefAnn):
-        self.eaf.removeAnnotationsWithRef(idRefAnn)
-
-    def updatePrevAnnotationForAnnotation(self, idAnnotation, idPrevAnn = None):
-        self.eaf.updatePrevAnnotationForAnnotation(idAnnotation, idPrevAnn)
-
-    def getAsEafXml(self, tree, tierUtterances, tierWords, tierMorphemes, tierGlosses, tierTranslations):
+    def getFile(self, tree, tierUtterances, tierWords, tierMorphemes, tierGlosses, tierTranslations):
         # make local copy of eaf
         eaf2 = deepcopy(self.eaf)
         utterances = [[u[0], u[1]] for u in tree if u[6] == tierUtterances]
-        translations = [[u[3], u[0]] for u in tree if u[6] == tierUtterances and len(u[3])>=1]
+        translations = [[u[3][0], u[0]] for u in tree if u[6] == tierUtterances and len(u[3][0])>=1]
         words = [[w[0], w[1]] for u in tree if u[6] == tierUtterances for w in u[2]]
         ilelements = [u[2] for u in tree if u[6] == tierUtterances]
         # save utterances
         for u in utterances:
             eaf2.setAnnotationValueForAnnotation(tierUtterances, u[0], u[1])
-        # save translations
+            # save translations
         for t1 in translations:
             for t in t1[0]:
                 if t[1] != "":
                     if not eaf2.setAnnotationValueForAnnotation(tierTranslations, t[0], t[1]):
                         eaf2.appendRefAnnotationToTier(tierTranslations, t[0], t[1], t1[1])
-        # save words
+            # save words
         for w in words:
             eaf2.setAnnotationValueForAnnotation(tierWords, w[0], w[1])
-        #save morphemes
+            #save morphemes
         eaf2.removeAllAnnotationsFromTier(tierMorphemes)
         eaf2.removeAllAnnotationsFromTier(tierGlosses)
         for i in ilelements:
@@ -338,50 +388,11 @@ class EafAnnotationFileParser(pyannotation.data.AnnotationFileParser):
         return eaf2.tostring()
 
 
-class EafAnnotationFileParserPos(EafAnnotationFileParser):
+class EafFromToolboxAnnotationFileParserMorphsynt(EafAnnotationFileParser):
 
     def __init__(self, annotationFileObject, annotationFileTiers):
-        EafTree.__init__(self, annotationFileObject, annotationFileTiers)
-
-    def getIlElementForWordId(self, id, wTier):
-        ilElement = []
-        word = self.eaf.getAnnotationValueForAnnotation(wTier, id)
-        ilElement.append(id)
-        ilElement.append(word)
-        posElements = []
-        posTierIds = self.tierBuilder.getPostierIds(wTier)
-        for pTier in posTierIds:
-            posIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(id, wTier, pTier)
-            for posId in posIds:
-                pos = self.eaf.getAnnotationValueForAnnotation(pTier, posId)
-                posElements.append((posId, pos))
-        ilElement.append(posElements)
-        return ilElement
-    
-
-class EafAnnotationFileParserWords(EafAnnotationFileParser):
-
-    def __init__(self, annotationFileObject, annotationFileTiers):
-        EafTree.__init__(self, annotationFileObject, annotationFileTiers)
-
-    def getIlElementForWordId(self, id, wTier):
-        ilElement = []
-        word = self.eaf.getAnnotationValueForAnnotation(wTier, wordId)
-        ilElement = [wordId, word]
-        return ilElement
-
-
-class EafFromToolboxAnnotationFileParser(pyannotation.data.AnnotationFileParser):
-
-    def __init__(self, annotationFileObject, annotationFileTiers):
-        pyannotation.data.AnnotationFileParser.__init__(self, annotationFileObject, annotationFileTiers, wordSep = r"[ \n\t\r]+", morphemeSep = r"[-]", glossSep = r"[:]")
-        self.tierBuilder = annotationFileTiers
-        self.eaf = annotationFileObject.getFile()
-        self.lastUsedAnnotationId = self.eaf.getLastUsedAnnotationId()
+        EafAnnotationFileParser.__init__(self, annotationFileObject, annotationFileTiers)
         self.emptyIlElement = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
-
-    def setFile(self, file):
-        self.file = file
 
     def getNextAnnotationId(self):
         self.lastUsedAnnotationId = self.lastUsedAnnotationId + 1
@@ -399,18 +410,11 @@ class EafFromToolboxAnnotationFileParser(pyannotation.data.AnnotationFileParser)
                 refId = self.eaf.getRefAnnotationIdForAnnotationId(uTier, uId)
                 toolboxId = self.eaf.getAnnotationValueForAnnotation("ref", refId)
 
-                translations = []
-                ilElements = []
                 locale = self.eaf.getLocaleForTier(uTier)
                 participant = self.eaf.getParticipantForTier(uTier)
-                translationTierIds = self.tierBuilder.getTranslationtierIds("ref")
-                for tTier in translationTierIds:
-                    transIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(refId, "ref", tTier)
-                    for transId in transIds:
-                        trans = self.eaf.getAnnotationValueForAnnotation(tTier, transId)
-                        if trans != '':
-                            translations.append([transId, trans])
-                
+                translations = self._translationsForUtterance(uTier, uId)
+                ilElements = []
+
                 arrTextWords = re.split(self.WORD_BOUNDARY_PARSE, utterance)
                 arrTextWords = filter(lambda i: i != '', arrTextWords)
                 
@@ -442,10 +446,64 @@ class EafFromToolboxAnnotationFileParser(pyannotation.data.AnnotationFileParser)
                 if len(ilElements) == 0:
                     ilElements = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
 
-                tree.append([ toolboxId,  utterance,  ilElements, translations, locale, participant, uTier ])
+                tree.append([ toolboxId,  utterance,  ilElements, [ translations ], locale, participant, uTier ])
                 
         tree.sort()
         return tree
+
+class EafAnnotationFileParserGraid(EafAnnotationFileParser):
+
+    def __init__(self, annotationFileObject, annotationFileTiers):
+        EafAnnotationFileParser.__init__(self, annotationFileObject, annotationFileTiers)
+        self.emptyIlElement = [ ['', '',  [ [ ['', '', ''] ], [ ['', '', ''] ] ], '' ] ]
+
+    def _graid2ForUtterance(self, uTier, uId):
+        graid2 = []
+        graid2TierIds = self.tierBuilder.getGraid2tierIds(uTier)
+        for g2Tier in graid2TierIds:
+            graid2Ids = self.eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, g2Tier)
+            for g2Id in graid2Ids:
+                g2 = self.eaf.getAnnotationValueForAnnotation(g2Tier, g2Id)
+                if g2 != '':
+                    graid2.append([g2Id, g2, g2Tier])
+        return graid2
+
+    def _annotationsForUtterance(self, uTier, uId):
+        translations = self._translationsForUtterance(uTier, uId)
+        graid2 = self._graid2ForUtterance(uTier, uId)
+        return [ translations, graid2 ]
+
+    def _graid1ForWord(self, wTier, wId):
+        graid1 = []
+        graid1TierIds = self.tierBuilder.getGraid1tierIds(wTier)
+        for g1Tier in graid1TierIds:
+            g1Ids = self.eaf.getSubAnnotationIdsForAnnotationInTier(wId, wTier, g1Tier)
+            for g1Id in g1Ids:
+                g1 = self.eaf.getAnnotationValueForAnnotation(g1Tier, g1Id)
+                graid1.append([ g1Id, g1, g1Tier ])
+        return graid1
+
+    def _wfwtranslationsForWord(self, wTier, wId):
+        wfw = []
+        wfwTierIds = self.tierBuilder.getWfwtierIds(wTier)
+        for wfwTier in wfwTierIds:
+            wfwIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(wId, wTier, wfwTier)
+            for wfwId in wfwIds:
+                w = self.eaf.getAnnotationValueForAnnotation(wfwTier, wfwId)
+                wfw.append([ wfwId, w, wfwTier ])
+        return wfw
+
+    def _ilelementsForUtterance(self, uTier, uId):
+        ilelements = []
+        wordTierIds = self.tierBuilder.getWordtierIds(uTier)
+        for wTier in wordTierIds:
+            wordsIds = self.eaf.getSubAnnotationIdsForAnnotationInTier(uId, uTier, wTier)
+            for wordId in wordsIds:
+                word = self.eaf.getAnnotationValueForAnnotation(wTier, wordId)
+                wfw = self._wfwtranslationsForWord(wTier, wordId)
+                graid1 = self._graid1ForWord(wTier, wordId)
+                ilelements.append([wordId, word, [ wfw, graid1 ] , wTier])
+        return ilelements
 
 ####################################### Files
 
@@ -455,7 +513,7 @@ class Eaf(object):
         self.tree = ET.parse(file)
 
     def tostring(self):
-        return ET.tostring(self.tree.getroot(), pretty_print=True, encoding="utf-8")
+        return ET.tostring(self.tree.getroot(), encoding="utf-8")
 
     def tiers(self):
         # returns tiers as dictionary: id -> type

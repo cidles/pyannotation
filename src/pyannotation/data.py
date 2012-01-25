@@ -101,6 +101,9 @@ class AnnotationFileParser(object):
     def parse(self):
         pass
 
+    def getFile(self, tree):
+        pass
+
     def removeAnnotationWithId(self, idAnnotation):
         pass
 
@@ -189,7 +192,7 @@ class AnnotationTree(object):
         
     def getTranslationById(self, translationId):
         for utterance in self.tree:
-            for translation in utterance[3]:
+            for translation in utterance[3][0]:
                 if translation[0] == translationId:
                     return translation[1]
         return ''
@@ -199,12 +202,12 @@ class AnnotationTree(object):
         for utterance in self.tree:
             if utterance[0] == utteranceId:
                 translationId = "a%i" % self.getNextAnnotationId()
-                utterance[3] = [ [ translationId, strTranslation ] ]
+                utterance[3][0] = [ [ translationId, strTranslation ] ]
         return translationId
 
     def setTranslation(self, translationId, strTranslation):
         for utterance in self.tree:
-            for translation in utterance[3]:
+            for translation in utterance[3][0]:
                 if translation[0] == translationId:
                     translation[1] = strTranslation
                     return True
@@ -226,7 +229,7 @@ class AnnotationTree(object):
     def getTranslationsForUtterance(self, utteranceId):
         for utterance in self.tree:
             if utterance[0] == utteranceId:
-                return utterance[3]
+                return utterance[3][0]
         return ''
 
     def getMorphemeStringForWord(self, wordId):
@@ -281,7 +284,7 @@ class AnnotationTree(object):
                         self.builder.removeAnnotationsWithRef(m[0])
                     self.builder.removeAnnotationWithId(w[0])
                     self.builder.removeAnnotationsWithRef(w[0])
-                for t in utterance[3]:
+                for t in utterance[3][0]:
                     self.builder.removeAnnotationWithId(t[0])                    
                     self.builder.removeAnnotationsWithRef(t[0])
                 self.builder.removeAnnotationWithId(utteranceId)
@@ -318,8 +321,8 @@ class AnnotationTree(object):
                 i = i + 1
         return False
 
-    def getAsEafXml(self, tierUtterances, tierWords, tierMorphemes, tierGlosses, tierTranslations):
-        return self.builder.getAsEafXml(self.tree, tierUtterances, tierWords, tierMorphemes, tierGlosses, tierTranslations)
+    def getFile(self, tierUtterances, tierWords, tierMorphemes, tierGlosses, tierTranslations):
+        return self.builder.getFile(self.tree, tierUtterances, tierWords, tierMorphemes, tierGlosses, tierTranslations)
         
     def appendFilter(self, filter):
         self.filters.append(filter)
