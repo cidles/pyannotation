@@ -95,3 +95,42 @@ class AnnotationFileParserMorphsynt(AnnotationFileParser):
             ilElement[2].append([ "a%i" % self.get_next_annotation_id(), arrIl[i], arrG2 ])
         return ilElement
 
+
+class DataStructureType(object):
+
+    data_hierarchy = [ 'utterance', ['word'], 'translation']
+
+    def __init__(self):
+        self.flat_data_hierarchy = self._flatten_hierarchy_elements(self.data_hierarchy)
+        self.nr_of_tiers = len(self.flat_data_hierarchy)
+
+    def empty_element(self):
+        return self._append_list(self.data_hierarchy)
+
+    def _append_list(self, element):
+        list = []
+        for e in element:
+            if type(element) is str or tpye(element) is unicode:
+                list.append(['', '', ''])
+            elif type(element) is list:
+                l = cls._append_list(list)
+                list.append(l)
+        return list
+
+    def _flatten_hierarchy_elements(self, elements):
+        flat_elements = []
+        for e in elements:
+            if type(e) is str or type(e) is unicode:
+                flat_elements.append(e)
+            elif type(e) is list:
+                flat_elements.extend(self._flatten_hierarchy_elements(e))
+        return flat_elements
+
+class DataStructureTypeGraid(DataStructureType):
+
+    data_hierarchy = \
+    [ 'utterance',
+        [ 'phrase',
+            [ 'word', 'wfw', 'graid1' ],
+          'graid2' ],
+      'translation', 'comment' ]

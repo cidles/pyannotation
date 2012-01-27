@@ -16,17 +16,21 @@ import pyannotation.data
 
 class AnnotationTree(object):
 
-    def __init__(self, file_type, structure_type, file_path = None):
+    def __init__(self, structure_type, file_type = None, file_path = None):
         self.tree = []
         self.annotation_file_object = None
         self.parser = None
+        self._next_annoation_id = 0
 
         self.file_type = file_type
         self.structure_type = structure_type
 
-        if file_path:
+        if structure_type == pyannotation.data.GRAID:
+            self.structure_type_handler = pyannotation.data.DataStructureTypeGraid()
+
+        if file_type and file_path:
             self.load_from_file(file_path)
-            self.parser = self.annotation_file_object.create_parser(self.structure_type)
+            self.parser = self.annotation_file_object.create_parser(structure_type)
             self.tier_handler = self.annotation_file_object.create_tier_handler()
 
         self.MORPHEME_BOUNDARY_BUILD = "-"
@@ -34,6 +38,11 @@ class AnnotationTree(object):
 
         self.filters = []
         self.filteredUtteranceIds = [[]]
+
+    @property
+    def next_annotation_id(self):
+        self._next_annoation_id += 1
+        return self._next_annoation_id
 
     def load_from_file(self, file_path):
          if self.file_type == pyannotation.data.EAF:
@@ -43,15 +52,35 @@ class AnnotationTree(object):
          elif self.file_type == pyannotation.data.TOOLBOX:
              self.annotation_file_object = pyannotation.toolbox.data.ToolboxAnnotationFileObject(file_path)
          else:
-             raise(UnknownFileFormatException("File format {0} not supported.".format(self.file_type)))
+             raise(pyannotation.data.UnknownFileFormatException("File format {0} not supported.".format(self.file_type)))
 
     def parse(self):
         if self.parser:
             self.tree = self.parser.parse()
             self.reset_filters()
         else:
-            raise(NoFileSpecifiedException())
+            raise(pyannotation.data.NoFileSpecifiedException())
 
+    def append_element_without_ids(self, element):
+        element_with_ids = self._add_ids_to_annotations(element)
+        self.tree.append(element_with_ids)
+
+    def _add_ids_to_annotations(self, elements):
+        elements_with_ids = []
+        for e in elements:
+            if type(e) is str or type(e) is unicode:
+                elements_with_ids.append({ 'id': self.next_annotation_id, 'annotation': e })
+            elif type(e) is list:
+                elements_with_ids.append(self._add_ids_to_annotations(e))
+        return elements_with_ids
+
+    def append_empty_element(self):
+        self.tree.append(self.structure_type_handler.empty_element())
+
+    def elements(self):
+        return (e for e in self.tree)
+
+    ################## old API
     def get_next_annotation_id(self):
         return self.parser.get_next_annotation_id()
 
