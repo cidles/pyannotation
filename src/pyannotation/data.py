@@ -7,7 +7,8 @@ The parsing is done by Builder classes for each file type, i.e.
 Elan's .eaf files, Kura's .xml file, Toolbox's .txt files etc.
 """
 
-import regex
+#import regex
+import re as regex
 
 # file types
 (EAF, EAFFROMTOOLBOX, KURA, TOOLBOX) = range(4)
@@ -104,6 +105,28 @@ class DataStructureType(object):
         self.flat_data_hierarchy = self._flatten_hierarchy_elements(self.data_hierarchy)
         self.nr_of_tiers = len(self.flat_data_hierarchy)
 
+    def index_of_type(self, type):
+        return self.flat_data_hierarchy.index(type)
+
+#    def get_parents_of_type(self, type):
+#        return self._get_parents_of_type_helper(type, self.data_hierarchy)
+#
+#    def _get_parents_of_type_helper(self, type, hierarchy):
+#        parents = []
+#        found = False
+#        for e in hierarchy:
+#            if type(e) is list and not found:
+#                if type in e:
+#                    found = True
+#                else:
+#                    parents = self._get_parents_of_type_helper(self, type, e)
+#            else:
+#                parents.append(e)
+#        if found:
+#            return parents
+#        else:
+#            return []
+
     def empty_element(self):
         return self._append_list(self.data_hierarchy)
 
@@ -111,9 +134,9 @@ class DataStructureType(object):
         list = []
         for e in element:
             if type(element) is str or tpye(element) is unicode:
-                list.append(['', '', ''])
+                list.append(['', ''])
             elif type(element) is list:
-                l = cls._append_list(list)
+                l = self._append_list(list)
                 list.append(l)
         return list
 
