@@ -108,8 +108,28 @@ class DataStructureType(object):
             self.data_hierarchy)
         self.nr_of_types = len(self.flat_data_hierarchy)
 
+    def get_siblings_of_type(self, ann_type):
+        """
+        Return all the siblings of a given type in the hierarchy
+        including the given type itself.
+
+        """
+        if ann_type not in self.flat_data_hierarchy:
+            raise UnknownAnnotationTypeError
+
+        if ann_type in self.data_hierarchy:
+            return [s for s in self.data_hierarchy if type(s) is str]
+
+        for e in self.data_hierarchy:
+            if type(e) is list:
+                if ann_type in e:
+                    return [s for s in e if type(s) is str]
+
     def get_parents_of_type(self, ann_type):
         """
+        Returns all the elements that are above a given type in the type
+        hierarchy.
+
         """
         if ann_type not in self.flat_data_hierarchy:
             raise UnknownAnnotationTypeError
@@ -117,11 +137,13 @@ class DataStructureType(object):
         return self._get_parents_of_type_helper(ann_type, self.data_hierarchy)[1]
 
     def _get_parents_of_type_helper(self, ann_type, hierarchy):
+        """Helper function for get_parents_of_type()"""
         parents = []
+        found = False
         for e in hierarchy:
-            if (type(e) is list):
+            if type(e) is list and not found:
                 if ann_type in e:
-                    return True, []
+                    found = True
                 else:
                     found, add_parents = self._get_parents_of_type_helper(
                         ann_type, e)
