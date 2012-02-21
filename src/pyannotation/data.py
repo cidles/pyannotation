@@ -12,13 +12,14 @@ import re as regex
 
 # file types
 (EAF, EAFFROMTOOLBOX, KURA, TOOLBOX) = range(4)
-class UnknownFileFormatException(Exception): pass
-class NoFileSpecifiedException(Exception): pass
+class UnknownFileFormatError(Exception): pass
+class NoFileSpecifiedError(Exception): pass
 
 # data structure types
 (WORDS, MORPHSYNT, GRAID) = range(3)
-class UnknownDataStructureTypeException(Exception): pass
-class DataStructureTypeNotSupportedException(Exception): pass
+class UnknownDataStructureTypeError(Exception): pass
+class DataStructureTypeNotSupportedError(Exception): pass
+class UnknownAnnotationTypeError(Exception): pass
 
 class AnnotationFileObject(object):
 
@@ -30,7 +31,7 @@ class AnnotationFileObject(object):
 
     def create_parser(self, type):
         raise(
-            DataStructureTypeNotSupportedException(
+            DataStructureTypeNotSupportedError(
                 "Data structure type {0} not supported".format(type)))
 
 class AnnotationFileTierHandler(object):
@@ -93,7 +94,8 @@ class AnnotationFileParserMorphsynt(AnnotationFileParser):
             arrG2 = []
             for g2 in arrG:
                 arrG2.append([ "a%i" % self.get_next_annotation_id(), g2])
-            ilElement[2].append([ "a%i" % self.get_next_annotation_id(), arrIl[i], arrG2 ])
+            ilElement[2].append(
+                [ "a%i" % self.get_next_annotation_id(), arrIl[i], arrG2 ])
         return ilElement
 
 
@@ -102,30 +104,32 @@ class DataStructureType(object):
     data_hierarchy = [ 'utterance', ['word'], 'translation']
 
     def __init__(self):
-        self.flat_data_hierarchy = self._flatten_hierarchy_elements(self.data_hierarchy)
-        self.nr_of_tiers = len(self.flat_data_hierarchy)
+        self.flat_data_hierarchy = self._flatten_hierarchy_elements(
+            self.data_hierarchy)
+        self.nr_of_types = len(self.flat_data_hierarchy)
 
-    def index_of_type(self, type):
-        return self.flat_data_hierarchy.index(type)
+    def get_parents_of_type(self, ann_type):
+        """
+        """
+        if ann_type not in self.flat_data_hierarchy:
+            raise UnknownAnnotationTypeError
 
-#    def get_parents_of_type(self, type):
-#        return self._get_parents_of_type_helper(type, self.data_hierarchy)
-#
-#    def _get_parents_of_type_helper(self, type, hierarchy):
-#        parents = []
-#        found = False
-#        for e in hierarchy:
-#            if type(e) is list and not found:
-#                if type in e:
-#                    found = True
-#                else:
-#                    parents = self._get_parents_of_type_helper(self, type, e)
-#            else:
-#                parents.append(e)
-#        if found:
-#            return parents
-#        else:
-#            return []
+        return self._get_parents_of_type_helper(ann_type, self.data_hierarchy)[1]
+
+    def _get_parents_of_type_helper(self, ann_type, hierarchy):
+        parents = []
+        for e in hierarchy:
+            if (type(e) is list):
+                if ann_type in e:
+                    return True, []
+                else:
+                    found, add_parents = self._get_parents_of_type_helper(
+                        ann_type, e)
+                    if found:
+                        parents += add_parents
+            else:
+                parents.append(e)
+        return found, parents
 
     def empty_element(self):
         return self._append_list(self.data_hierarchy)
@@ -133,9 +137,9 @@ class DataStructureType(object):
     def _append_list(self, element):
         list = []
         for e in element:
-            if type(element) is str or tpye(element) is unicode:
-                list.append(['', ''])
-            elif type(element) is list:
+            if type(e) is str or type(e) is unicode:
+                list.append({ 'id': None, 'annotation': '' })
+            elif type(e) is list:
                 l = self._append_list(list)
                 list.append(l)
         return list
@@ -153,7 +157,16 @@ class DataStructureTypeGraid(DataStructureType):
 
     data_hierarchy = \
     [ 'utterance',
-        [ 'phrase',
+        [ 'clause unit',
             [ 'word', 'wfw', 'graid1' ],
           'graid2' ],
       'translation', 'comment' ]
+
+class DataStructureTypeMorphsynt(DataStructureType):
+
+    data_hierarchy =\
+    [ 'utterance',
+        [ 'word',
+            [ 'morpheme',
+                [ 'gloss'] ] ],
+        'translation', 'comment' ]

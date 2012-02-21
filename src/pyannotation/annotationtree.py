@@ -75,7 +75,8 @@ class AnnotationTree(object):
         return elements_with_ids
 
     def append_empty_element(self):
-        self.tree.append(self.structure_type_handler.empty_element())
+        empty_element = self.structure_type_handler.empty_element()
+        self.tree.append(self._add_ids_to_annotations(empty_element))
 
     def elements(self):
         return (e for e in self.tree)
