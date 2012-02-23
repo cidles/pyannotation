@@ -44,6 +44,10 @@ class AnnotationTree(object):
         self._next_annoation_id += 1
         return self._next_annoation_id
 
+    @next_annotation_id.setter
+    def next_annotation_id(self, next_id):
+        self._next_annoation_id = next_id
+
     def load_from_file(self, file_path):
          if self.file_type == pyannotation.data.EAF:
              self.annotation_file_object = pyannotation.elan.data.EafAnnotationFileObject(file_path)
