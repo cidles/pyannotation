@@ -65,25 +65,51 @@ class AnnotationTree(object):
         else:
             raise(pyannotation.data.NoFileSpecifiedException())
 
-    def append_element_without_ids(self, element):
-        element_with_ids = self._add_ids_to_annotations(element)
-        self.tree.append(element_with_ids)
+    def append_element(self, element, update_ids = False):
+        if update_ids:
+            self.tree.append(self._update_ids_of_element(element))
+        else:
+            self.tree.append(element)
 
-    def _add_ids_to_annotations(self, elements):
-        elements_with_ids = []
-        for e in elements:
-            if type(e) is str or type(e) is unicode:
-                elements_with_ids.append({ 'id': self.next_annotation_id, 'annotation': e })
+    def _update_ids_of_element(self, element):
+        element_with_ids = []
+        for e in element:
+            if type(e) is dict:
+                element_with_ids.append({ 'id': self.next_annotation_id, 'annotation': e['annotation'] })
             elif type(e) is list:
-                elements_with_ids.append(self._add_ids_to_annotations(e))
-        return elements_with_ids
+                element_with_ids.append(self._update_ids_of_element(e))
+        return element_with_ids
+
+    def empty_element(self):
+        empty_element = self.structure_type_handler.empty_element()
+        return self._update_ids_of_element(empty_element)
 
     def append_empty_element(self):
-        empty_element = self.structure_type_handler.empty_element()
-        self.tree.append(self._add_ids_to_annotations(empty_element))
+        empty_element = self.empty_element()
+        self.tree.append(empty_element)
 
     def elements(self):
         return (e for e in self.tree)
+
+    def remove_element(self, id_element):
+        for i, e in enumerate(self.tree):
+            if e[0]['id'] == id_element:
+                self.tree.pop(i)
+                return True
+        return False
+
+    def insert_element(self, element, id_element, after = False,
+                       update_ids = False):
+        if update_ids:
+            element = self._update_ids_of_element(element)
+        for i, e in enumerate(self.tree):
+            if e[0]['id'] == id_element:
+                if after:
+                    self.tree.insert(i + 1, element)
+                else:
+                    self.tree.insert(i, element)
+                return True
+        return False
 
     ################## old API
     def get_next_annotation_id(self):
@@ -99,7 +125,8 @@ class AnnotationTree(object):
         return self.filtered_itterance_ids[-1]
 
     def get_utterance_ids_in_tier(self, id_tier=""):
-        return [utterance[0] for utterance in self.tree if utterance[6] == id_tier]
+        return [utterance[0]
+                for utterance in self.tree if utterance[6] == id_tier]
 
     def get_utterance_by_id(self, id_utterance):
         for utterance in self.tree:

@@ -157,14 +157,14 @@ class DataStructureType(object):
         return self._append_list(self.data_hierarchy)
 
     def _append_list(self, element):
-        list = []
+        ret = []
         for e in element:
             if type(e) is str or type(e) is unicode:
-                list.append({ 'id': None, 'annotation': '' })
+                ret.append({ 'id': None, 'annotation': '' })
             elif type(e) is list:
-                l = self._append_list(list)
-                list.append(l)
-        return list
+                l = self._append_list(e)
+                ret.append([l])
+        return ret
 
     def _flatten_hierarchy_elements(self, elements):
         flat_elements = []
