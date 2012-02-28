@@ -111,6 +111,9 @@ class AnnotationTree(object):
                 return True
         return False
 
+    def __len__(self):
+        return len(self.tree)
+
     ################## old API
     def get_next_annotation_id(self):
         return self.parser.get_next_annotation_id()

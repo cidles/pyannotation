@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
-# (C) 2011, 2012 copyright by Peter Bouda
-"""This module contains classes to access Elan data.
+#
+# Poio Tools for Linguists
+#
+# Copyright (C) 2001-2012 Poio Project
+# Author: Peter Bouda <pbouda@cidles.eu>
+# URL: <http://www.cidles.eu/ltll/poio>
+# For license information, see LICENSE.TXT
+
+"""
+This module contains classes to access Elan data.
 
 The class Eaf is a low level API to .eaf files.
 
