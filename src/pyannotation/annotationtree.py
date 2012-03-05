@@ -20,7 +20,7 @@ class AnnotationTree(object):
         self.tree = []
         self.annotation_file_object = None
         self.parser = None
-        self._next_annoation_id = 0
+        self._next_annotation_id = 0
 
         self.file_type = file_type
         self.structure_type = structure_type
@@ -41,12 +41,14 @@ class AnnotationTree(object):
 
     @property
     def next_annotation_id(self):
-        self._next_annoation_id += 1
-        return self._next_annoation_id
+        self._next_annotation_id += 1
+        return self._next_annotation_id
 
     @next_annotation_id.setter
     def next_annotation_id(self, next_id):
-        self._next_annoation_id = next_id
+        if type(next_id) is not int:
+            raise(TypeError, "annotation ID must be int")
+        self._next_annotation_id = next_id
 
     def load_from_file(self, file_path):
          if self.file_type == pyannotation.data.EAF:
