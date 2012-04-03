@@ -710,7 +710,7 @@ class Eaf(object):
         type = self.getLinguisticTypeForTier(idTier)
         ret = []
         if self.linguisticTypeIsTimeAlignable(type):
-            ret = self.getAlignableAnnotationIdsForTier(idtier)
+            ret = self.getAlignableAnnotationIdsForTier(idTier)
         else:
             ret = self.getRefAnnotationIdsForTier(idTier)
         return ret
