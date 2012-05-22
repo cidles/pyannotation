@@ -49,10 +49,10 @@ class EafAnnotationFileObject(pyannotation.data.AnnotationFileObject):
         self.tier_handler = EafAnnotationFileTierHandler(self)
         return self.tier_handler
 
-    def create_parser(self, type):
-        if type == pyannotation.data.WORDS:
+    def create_parser(self, annotation_type):
+        if annotation_type == pyannotation.corpusreader.WORDS:
             self.parser = EafAnnotationFileParser(self, self.create_tier_handler())
-        elif type == pyannotation.data.MORPHSYNT:
+        elif annotation_type == pyannotation.corpusreader.GLOSS:
             self.parser = EafAnnotationFileParserMorphsynt(self, self.create_tier_handler())
         else:
             raise(
@@ -76,17 +76,17 @@ class EafFromToolboxAnnotationFileObject(pyannotation.data.AnnotationFileObject)
         self.file = EafPythonic(file_path)
 
     def create_tier_handler(self):
-        if self.tier_handler == None:
-            self.tier_handler = EafAnnotationFileTierHandler(self)
-            self.tier_handler.set_utterancetier_type("tx")
-            self.tier_handler.set_wordtier_type("mo")
-            self.tier_handler.set_morphemetier_type("mo")
-            self.tier_handler.set_glosstier_type("gl")
-            self.tier_handler.set_translationtier_type(["ft", "ot"])
+        #if self.tier_handler == None:
+        self.tier_handler = EafAnnotationFileTierHandler(self)
+        self.tier_handler.set_utterancetier_type("tx")
+        self.tier_handler.set_wordtier_type("mo")
+        self.tier_handler.set_morphemetier_type("mo")
+        self.tier_handler.set_glosstier_type("gl")
+        self.tier_handler.set_translationtier_type(["ft", "ot"])
         return self.tier_handler
 
-    def create_parser(self):
-        if type == pyannotation.data.MORPHSYNT:
+    def create_parser(self, annotation_type):
+        if annotation_type == pyannotation.corpusreader.GLOSS:
             self.parser = EafFromToolboxAnnotationFileParserMorphsynt(
                 self, self.create_tier_handler())
         else:
@@ -404,7 +404,7 @@ class EafAnnotationFileParserMorphsynt(pyannotation.data.AnnotationFileParserMor
 class EafFromToolboxAnnotationFileParserMorphsynt(EafAnnotationFileParserMorphsynt):
 
     def __init__(self, annotation_file_object, annotation_file_tiers):
-        EafAnnotationFileParserMorpsynt.__init__(self, annotation_file_object, annotation_file_tiers)
+        EafAnnotationFileParserMorphsynt.__init__(self, annotation_file_object, annotation_file_tiers)
         self.empty_il_element = [ ['', '',  [ ['', '',  [ ['',  ''] ] ] ] ] ]
 
     def parse(self):

@@ -11,7 +11,11 @@ Elan's .eaf files, Kura's .xml file, Toolbox's .txt files etc.
 import re as regex
 
 # file types
-(EAF, EAFFROMTOOLBOX, KURA, TOOLBOX) = range(4)
+(EAF, EAFFROMTOOLBOX, KURA, TOOLBOX, TREEPICKLE) = range(5)
+
+# Data structure types
+(GLOSS, WORDS, GRAID) = range(3)
+
 class UnknownFileFormatError(Exception): pass
 class NoFileSpecifiedError(Exception): pass
 
@@ -101,6 +105,8 @@ class AnnotationFileParserMorphsynt(AnnotationFileParser):
 
 class DataStructureType(object):
 
+    name = "WORDS"
+
     data_hierarchy = [ 'utterance', ['word'], 'translation']
 
     def __init__(self):
@@ -177,6 +183,8 @@ class DataStructureType(object):
 
 class DataStructureTypeGraid(DataStructureType):
 
+    name = "GRAID"
+
     data_hierarchy = \
     [ 'utterance',
         [ 'clause unit',
@@ -185,6 +193,8 @@ class DataStructureTypeGraid(DataStructureType):
       'translation', 'comment' ]
 
 class DataStructureTypeMorphsynt(DataStructureType):
+
+    name = "MORPHOSYNTACTIC"
 
     data_hierarchy =\
     [ 'utterance',

@@ -5,6 +5,8 @@ CorpusReader, GlossCorpusReader, PosCorpusReader implement a
 part of the corpus reader API described in the Natural
 Language Toolkit (NLTK):
 http://nltk.googlecode.com/svn/trunk/doc/howto/corpus.html
+
+Deprecated. Replaced by classes in module corpus.
 """
 
 import os, glob
@@ -12,11 +14,10 @@ import re
 from pyannotation.elan.data import EafAnnotationFileObject
 from pyannotation.elan.data import EafFromToolboxAnnotationFileObject
 from pyannotation.toolbox.data import ToolboxAnnotationFileObject
-from pyannotation.data import AnnotationTree
+from pyannotation.annotationtree import AnnotationTree
 import pyannotation
 
 # interlinear types: WORDS means "no interlinear"
-(GLOSS, WORDS, GRAID) = range(3)
 
 class CorpusReader(object):
     """
@@ -44,15 +45,16 @@ class CorpusReader(object):
         elif filetype == pyannotation.data.TOOLBOX:
             annotationFileObject = ToolboxAnnotationFileObject(filepath)
         if annotationFileObject != None:
-            annotationTierHandler = annotationFileObject.createTierHandler()
+            annotationTierHandler = annotationFileObject.create_tier_handler()
 
             # create the parser
-            if self.interlineartype == GLOSS:
-              annotationParser = annotationFileObject.createParserMorphsynt()
-            elif self.interlineartype == WORDS:
-              annotationParser = annotationFileObject.createParserWords()
+            #if self.interlineartype == GLOSS:
+            #  annotationParser = annotationFileObject.create_parser(self.interlineartype)
+            #elif self.interlineartype == WORDS:
+            #  annotationParser = annotationFileObject.create_parser(self.interlineartype)
 
-            annotationTree = AnnotationTree(annotationParser)
+
+            annotationTree = AnnotationTree(filepath, self.interlineartype)
             
             if filetype == pyannotation.data.EAF:
                 # Setting the tier types for the parse
