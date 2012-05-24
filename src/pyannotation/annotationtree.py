@@ -118,8 +118,11 @@ class AnnotationTree():
 
     def append_filter(self, filter):
         self.filters.append(filter)
-        new_filtered_utterances = [utterance[0] for utterance in self.tree if utterance[0] in self.filtered_utterance_ids[-1] and filter.utterance_passes_filter(utterance)]
-        self.filtered_utterance_ids.append(new_filtered_utterances)
+        new_filtered_elements = [element["id"]
+             for element in self.tree
+             if element["id"] in self.filtered_element_ids[-1] and
+                filter.element_passes_filter(element)]
+        self.filtered_element_ids.append(new_filtered_elements)
 
     def last_filter(self):
         if len(self.filters) > 0:
@@ -133,185 +136,212 @@ class AnnotationTree():
 
     def pop_filter(self):
         if len(self.filters) > 0:
-            self.filtered_utterance_ids.pop()
+            self.filtered_element_ids.pop()
             return self.filters.pop()
         return None
 
     def clear_filters(self):
         self.filters = []
-        self.filtered_utterance_ids = [self.get_utterance_ids()]
+        self.filtered_element_ids = [e["id"] for e in self.tree]
 
     def reset_filters(self):
-        self.filtered_utterance_ids = [self.get_utterance_ids()]
+        self.filtered_element_ids = [e["id"] for e in self.tree]
         for filter in self.filters:
-            new_filtered_utterances = [utterance[0] for utterance in self.tree if utterance[0] in self.filtered_utterance_ids[-1] and filter.utterancePassesFilter(utterance)]
-            self.filtered_utterance_ids.append(new_filtered_utterances)
+            new_filtered_elements = [e["id"] for e in self.tree
+                if e["id"] in self.filtered_element_ids[-1] and
+                    filter.element_passes_filter(e)]
+            self.filtered_element_ids.append(new_filtered_elements)
+
+    def as_html(self):
+        html = "<html><head></head><body>\n"
+        for i, element in enumerate(self.tree):
+            html += "<table>\n"
+            html = self._element_as_html(element, self.data_structure_type.data_hierarchy, html)
+            html += "</table>\n"
+        html += "</body></html>"
+        return html
+
+    def _element_as_html(self, elements, hierarchy, html):
+        current_row = -1
+        for i, t in enumerate(hierarchy):
+            if type(t) is list:
+                elements_list = elements[i]
+                for e in elements_list:
+                    html = self._element_as_html(e, t, html)
+            else:
+                new_row = self.data_structure_type.flat_data_hierarchy.index(t)
+                if new_row != current_row:
+                    if current_row != -1:
+                        html += "</tr>\n"
+                    html += "<tr>\n"
+                html += "<td>" + elements[i]["annotation"] + "</td>\n"
+
+        return html
 
     ################## old API
-    def get_next_annotation_id(self):
-        return self.parser.get_next_annotation_id()
-
-    def add_tier(self, *args):
-        return self.parser.add_tier(*args)
-
-    def get_utterance_ids(self):
-        return [utterance[0] for utterance in self.tree]
-
-    def get_filtered_utterance_ids(self):
-        return self.filtered_itterance_ids[-1]
-
-    def get_utterance_ids_in_tier(self, id_tier=""):
-        return [utterance[0]
-                for utterance in self.tree if utterance[6] == id_tier]
-
-    def get_utterance_by_id(self, id_utterance):
-        for utterance in self.tree:
-            if utterance[0] == id_utterance:
-                return utterance[1]
-        return ''
-
-    def set_utterance(self, id_utterance, str_utterance):
-        for utterance in self.tree:
-            if utterance[0] == id_utterance:
-                utterance[1] = str_utterance
-                return True
-        return False
-
-    def get_translation_by_id(self, id_translation):
-        for utterance in self.tree:
-            for translation in utterance[3][0]:
-                if translation[0] == id_translation:
-                    return translation[1]
-        return ''
-
-    def new_translation_for_utterance_id(self, id_utterance, str_translation):
-        id_translation = None
-        for utterance in self.tree:
-            if utterance[0] == id_utterance:
-                id_translation = "a%i" % self.get_next_annotation_id()
-                utterance[3][0] = [ [ id_translation, str_translation ] ]
-        return id_translation
-
-    def set_translation(self, id_translation, str_translation):
-        for utterance in self.tree:
-            for translation in utterance[3][0]:
-                if translation[0] == id_translation:
-                    translation[1] = str_translation
-                    return True
-        return False
-
-    def get_word_by_id(self, id_word):
-        for utterance in self.tree:
-            for word in utterance[2]:
-                if word[0] == id_word:
-                    return word[1]
-        return ''
-
-    def get_word_ids_for_utterance(self, id_utterance):
-        for utterance in self.tree:
-            if utterance[0] == id_utterance:
-                return [w[0] for w in utterance[2]]
-        return []
-
-    def get_translations_for_utterance(self, id_utterance):
-        for utterance in self.tree:
-            if utterance[0] == id_utterance:
-                return utterance[3][0]
-        return ''
-
-    def get_morpheme_string_for_word(self, id_word):
-        m = [morpheme[1] for u in self.tree for w in u[2] if w[0] == id_word for morpheme in w[2]]
-        return self.MORPHEME_BOUNDARY_BUILD.join(m)
-
-    def il_element_for_string(self, text):
-        return self.parser.il_element_for_string(text)
-
-    def get_gloss_string_for_word(self, id_word):
-        l = []
-        for u in self.tree:
-            for w in u[2]:
-                if w[0] == id_word:
-                    for m in w[2]:
-                        f = [gloss[1] for gloss in m[2]]
-                        l.append(self.GLOSS_BOUNDARY_BUILD.join(f))
-        return self.MORPHEME_BOUNDARY_BUILD.join(l)
-
-    def set_il_element_for_word_id(self, id_word, il_element):
-        for u in self.tree:
-            for i in range(len(u[2])):
-                w = u[2][i]
-                if w[0] == id_word:
-                    # fill the new ilElement with old Ids, generate new Ids for new elements
-                    il_element[0] = id_word
-                    for j in range(len(il_element[2])):
-                        if j < len(w[2]) and w[2][j][0] != "":
-                            il_element[2][j][0] = w[2][j][0]
-                        else:
-                            il_element[2][j][0] = "a%i" % self.get_next_annotation_id()
-                        for k in range(len(il_element[2][j][2])):
-                            if j < len(w[2]) and k < len(w[2][j][2]) and w[2][j][2][k][0] != "":
-                                il_element[2][j][2][k][0] = w[2][j][2][k][0]
-                            else:
-                                il_element[2][j][2][k][0] = "a%i" % self.get_next_annotation_id()
-                    u[2][i] = il_element
-                    return True
-        return False
-
-    def remove_utterance_with_id(self, id_utterance):
-        i = 0
-        for utterance in self.tree:
-            if utterance[0] == id_utterance:
-                # found utterances, delete all elements from tree
-                for w in utterance[2]:
-                    for m in w[2]:
-                        for g in m[2]:
-                            self.parser.remove_annotation_with_id(g[0])
-                            self.parser.remove_annotations_with_ref(g[0])
-                        self.parser.remove_annotation_with_id(m[0])
-                        self.parser.remove_annotations_with_ref(m[0])
-                    self.parser.remove_annotation_with_id(w[0])
-                    self.parser.remove_annotations_with_ref(w[0])
-                for t in utterance[3][0]:
-                    self.parser.remove_annotation_with_id(t[0])
-                    self.parser.remove_annotations_with_ref(t[0])
-                self.parser.remove_annotation_with_id(id_utterance)
-                self.parser.remove_annotations_with_ref(id_utterance)
-                self.tree.pop(i)
-                return True
-            i += 1
-        return False
-
-    def remove_word_with_id(self, id_word):
-        for utterance in self.tree:
-            i = 0
-            for w in utterance[2]:
-                if w[0] == id_word:
-                    for m in w[2]:
-                        for g in m[2]:
-                            self.parser.remove_annotation_with_id(g[0])
-                            self.parser.remove_annotations_with_ref(g[0])
-                        self.parser.remove_annotation_with_id(m[0])
-                        self.parser.remove_annotations_with_ref(m[0])
-                    self.parser.remove_annotation_with_id(id_word)
-                    # link next word to prev, if those are there
-                    if i > 0 and len(utterance[2]) > (i+1):
-                        id_prevword = utterance[2][i-1][0]
-                        id_nextword = utterance[2][i+1][0]
-                        self.parser.update_prev_annotation_for_annotation(id_nextword, id_prevword)
-                        # remove link to this word if this is the first word and there is a second
-                    if i == 0 and len(utterance[2]) > 1:
-                        id_nextword = utterance[2][i+1][0]
-                        self.parser.update_prev_annotation_for_annotation(id_nextword)
-                    self.parser.remove_annotations_with_ref(id_word)
-                    utterance[2].pop(i)
-                    return True
-                i += 1
-        return False
-
-    def get_file(self, tier_utterances, tier_words, tier_morphemes, tier_glosses, tier_translations):
-        return self.parser.get_file(self.tree, tier_utterances, tier_words, tier_morphemes, tier_glosses, tier_translations)
-
-
+#    def get_next_annotation_id(self):
+#        return self.parser.get_next_annotation_id()
+#
+#    def add_tier(self, *args):
+#        return self.parser.add_tier(*args)
+#
+#    def get_utterance_ids(self):
+#        return [utterance[0] for utterance in self.tree]
+#
+#    def get_filtered_utterance_ids(self):
+#        return self.filtered_itterance_ids[-1]
+#
+#    def get_utterance_ids_in_tier(self, id_tier=""):
+#        return [utterance[0]
+#                for utterance in self.tree if utterance[6] == id_tier]
+#
+#    def get_utterance_by_id(self, id_utterance):
+#        for utterance in self.tree:
+#            if utterance[0] == id_utterance:
+#                return utterance[1]
+#        return ''
+#
+#    def set_utterance(self, id_utterance, str_utterance):
+#        for utterance in self.tree:
+#            if utterance[0] == id_utterance:
+#                utterance[1] = str_utterance
+#                return True
+#        return False
+#
+#    def get_translation_by_id(self, id_translation):
+#        for utterance in self.tree:
+#            for translation in utterance[3][0]:
+#                if translation[0] == id_translation:
+#                    return translation[1]
+#        return ''
+#
+#    def new_translation_for_utterance_id(self, id_utterance, str_translation):
+#        id_translation = None
+#        for utterance in self.tree:
+#            if utterance[0] == id_utterance:
+#                id_translation = "a%i" % self.get_next_annotation_id()
+#                utterance[3][0] = [ [ id_translation, str_translation ] ]
+#        return id_translation
+#
+#    def set_translation(self, id_translation, str_translation):
+#        for utterance in self.tree:
+#            for translation in utterance[3][0]:
+#                if translation[0] == id_translation:
+#                    translation[1] = str_translation
+#                    return True
+#        return False
+#
+#    def get_word_by_id(self, id_word):
+#        for utterance in self.tree:
+#            for word in utterance[2]:
+#                if word[0] == id_word:
+#                    return word[1]
+#        return ''
+#
+#    def get_word_ids_for_utterance(self, id_utterance):
+#        for utterance in self.tree:
+#            if utterance[0] == id_utterance:
+#                return [w[0] for w in utterance[2]]
+#        return []
+#
+#    def get_translations_for_utterance(self, id_utterance):
+#        for utterance in self.tree:
+#            if utterance[0] == id_utterance:
+#                return utterance[3][0]
+#        return ''
+#
+#    def get_morpheme_string_for_word(self, id_word):
+#        m = [morpheme[1] for u in self.tree for w in u[2] if w[0] == id_word for morpheme in w[2]]
+#        return self.MORPHEME_BOUNDARY_BUILD.join(m)
+#
+#    def il_element_for_string(self, text):
+#        return self.parser.il_element_for_string(text)
+#
+#    def get_gloss_string_for_word(self, id_word):
+#        l = []
+#        for u in self.tree:
+#            for w in u[2]:
+#                if w[0] == id_word:
+#                    for m in w[2]:
+#                        f = [gloss[1] for gloss in m[2]]
+#                        l.append(self.GLOSS_BOUNDARY_BUILD.join(f))
+#        return self.MORPHEME_BOUNDARY_BUILD.join(l)
+#
+#    def set_il_element_for_word_id(self, id_word, il_element):
+#        for u in self.tree:
+#            for i in range(len(u[2])):
+#                w = u[2][i]
+#                if w[0] == id_word:
+#                    # fill the new ilElement with old Ids, generate new Ids for new elements
+#                    il_element[0] = id_word
+#                    for j in range(len(il_element[2])):
+#                        if j < len(w[2]) and w[2][j][0] != "":
+#                            il_element[2][j][0] = w[2][j][0]
+#                        else:
+#                            il_element[2][j][0] = "a%i" % self.get_next_annotation_id()
+#                        for k in range(len(il_element[2][j][2])):
+#                            if j < len(w[2]) and k < len(w[2][j][2]) and w[2][j][2][k][0] != "":
+#                                il_element[2][j][2][k][0] = w[2][j][2][k][0]
+#                            else:
+#                                il_element[2][j][2][k][0] = "a%i" % self.get_next_annotation_id()
+#                    u[2][i] = il_element
+#                    return True
+#        return False
+#
+#    def remove_utterance_with_id(self, id_utterance):
+#        i = 0
+#        for utterance in self.tree:
+#            if utterance[0] == id_utterance:
+#                # found utterances, delete all elements from tree
+#                for w in utterance[2]:
+#                    for m in w[2]:
+#                        for g in m[2]:
+#                            self.parser.remove_annotation_with_id(g[0])
+#                            self.parser.remove_annotations_with_ref(g[0])
+#                        self.parser.remove_annotation_with_id(m[0])
+#                        self.parser.remove_annotations_with_ref(m[0])
+#                    self.parser.remove_annotation_with_id(w[0])
+#                    self.parser.remove_annotations_with_ref(w[0])
+#                for t in utterance[3][0]:
+#                    self.parser.remove_annotation_with_id(t[0])
+#                    self.parser.remove_annotations_with_ref(t[0])
+#                self.parser.remove_annotation_with_id(id_utterance)
+#                self.parser.remove_annotations_with_ref(id_utterance)
+#                self.tree.pop(i)
+#                return True
+#            i += 1
+#        return False
+#
+#    def remove_word_with_id(self, id_word):
+#        for utterance in self.tree:
+#            i = 0
+#            for w in utterance[2]:
+#                if w[0] == id_word:
+#                    for m in w[2]:
+#                        for g in m[2]:
+#                            self.parser.remove_annotation_with_id(g[0])
+#                            self.parser.remove_annotations_with_ref(g[0])
+#                        self.parser.remove_annotation_with_id(m[0])
+#                        self.parser.remove_annotations_with_ref(m[0])
+#                    self.parser.remove_annotation_with_id(id_word)
+#                    # link next word to prev, if those are there
+#                    if i > 0 and len(utterance[2]) > (i+1):
+#                        id_prevword = utterance[2][i-1][0]
+#                        id_nextword = utterance[2][i+1][0]
+#                        self.parser.update_prev_annotation_for_annotation(id_nextword, id_prevword)
+#                        # remove link to this word if this is the first word and there is a second
+#                    if i == 0 and len(utterance[2]) > 1:
+#                        id_nextword = utterance[2][i+1][0]
+#                        self.parser.update_prev_annotation_for_annotation(id_nextword)
+#                    self.parser.remove_annotations_with_ref(id_word)
+#                    utterance[2].pop(i)
+#                    return True
+#                i += 1
+#        return False
+#
+#    def get_file(self, tier_utterances, tier_words, tier_morphemes, tier_glosses, tier_translations):
+#        return self.parser.get_file(self.tree, tier_utterances, tier_words, tier_morphemes, tier_glosses, tier_translations)
+#
 
 class AnnotationTreeFilter():
 
@@ -323,7 +353,7 @@ class AnnotationTreeFilter():
             self.structure_type_handler = pyannotation.data.DataStructureTypeGraid()
 
         self.filter = dict()
-        for e in self.structure_type_handler.flat_data_hierarchy:
+        for e in self.data_structure_type.flat_data_hierarchy:
             self.filter[e] = ""
 
         self.reset_match_object()
@@ -333,7 +363,7 @@ class AnnotationTreeFilter():
 
     def reset_match_object(self):
         self.matchobject = dict()
-        for e in self.structure_type_handler.flat_data_hierarchy:
+        for e in self.data_structure_type.flat_data_hierarchy:
             self.matchobject[e] = dict()
 
     def set_filter_for_type(self, ann_type, filter_string):
@@ -362,9 +392,9 @@ class AnnotationTreeFilter():
 #
 #    def set_translation_filter(self, string):
 #        self.filter["translation"] = string
-#
-#    def set_inverted_filter(self, inverted):
-#        self.inverted = inverted
+
+    def set_inverted_filter(self, inverted):
+        self.inverted = inverted
 
     def set_contained_matches(self, contained_matches):
         self.contained_matches = contained_matches
@@ -372,7 +402,7 @@ class AnnotationTreeFilter():
     def set_boolean_operation(self, type):
         self.boolean_operation = type
 
-    def utterance_passes_filter(self, element):
+    def element_passes_filter(self, element):
 #        utterance_match = False
 #        translation_match = False
 #        word_match = False
@@ -397,7 +427,7 @@ class AnnotationTreeFilter():
         else:
             passed = False
 
-        passed = self._passes_filter(passed, element, self.structure_type_handler.data_hierarchy)
+        passed = self._passes_filter(passed, element, self.data_structure_type.data_hierarchy)
 
 #        # filter by utterance
 #        if self.filter["utterance"] != "":
@@ -467,7 +497,7 @@ class AnnotationTreeFilter():
         return passed
 
     def _passes_filter(self, passed, elements, hierarchy):
-        for i, t in enumerate(self.structure_type_handler.data_hierarchy):
+        for i, t in enumerate(hierarchy):
             if type(t) is list:
                 elements_list = elements[i]
                 for i, e in enumerate(elements_list):
