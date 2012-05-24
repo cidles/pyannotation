@@ -21,6 +21,7 @@ class CorpusTrees():
         if filetype == pyannotation.data.TREEPICKLE:
             annotation_tree = pyannotation.annotationtree.AnnotationTree(self.data_structure_type)
             annotation_tree.load_tree_from_pickle(filepath)
-            items.append( (filepath, annotation_tree) )
+            annotation_tree.init_filters()
+            self.items.append( (filepath, annotation_tree) )
         else:
             raise pyannotation.data.UnknownFileFormatError()

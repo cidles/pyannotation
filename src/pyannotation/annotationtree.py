@@ -14,6 +14,7 @@ import pyannotation.elan.data
 import pyannotation.toolbox.data
 import pyannotation.data
 import pickle
+import regex
 
 class AnnotationTree():
 
@@ -118,10 +119,10 @@ class AnnotationTree():
 
     def append_filter(self, filter):
         self.filters.append(filter)
-        new_filtered_elements = [element["id"]
-             for element in self.tree
-             if element["id"] in self.filtered_element_ids[-1] and
-                filter.element_passes_filter(element)]
+        new_filtered_elements = [i
+             for i, e in enumerate(self.tree)
+             if i in self.filtered_element_ids[-1] and
+                filter.element_passes_filter(e)]
         self.filtered_element_ids.append(new_filtered_elements)
 
     def last_filter(self):
@@ -140,43 +141,78 @@ class AnnotationTree():
             return self.filters.pop()
         return None
 
-    def clear_filters(self):
+    def init_filters(self):
         self.filters = []
-        self.filtered_element_ids = [e["id"] for e in self.tree]
+        self.filtered_element_ids = [ range(len(self.tree)) ]
 
     def reset_filters(self):
-        self.filtered_element_ids = [e["id"] for e in self.tree]
+        self.filtered_element_ids = [ range(len(self.tree)) ]
         for filter in self.filters:
-            new_filtered_elements = [e["id"] for e in self.tree
-                if e["id"] in self.filtered_element_ids[-1] and
+            new_filtered_elements = [i for i, e in enumerate(self.tree)
+                if i in self.filtered_element_ids[-1] and
                     filter.element_passes_filter(e)]
             self.filtered_element_ids.append(new_filtered_elements)
 
-    def as_html(self):
-        html = "<html><head></head><body>\n"
+    def as_html(self, filtered = False, html_frame = True):
+        html = ""
+        if html_frame:
+            html = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" /></head><body>\n"
         for i, element in enumerate(self.tree):
+            if filtered and i not in self.filtered_element_ids[-1]:
+                continue
             html += "<table>\n"
-            html = self._element_as_html(element, self.data_structure_type.data_hierarchy, html)
+            table = [list() for _ in range(len(
+                self.data_structure_type.flat_data_hierarchy))]
+            self._element_as_table(
+                element, self.data_structure_type.data_hierarchy, table, 0)
+            #print table
+            for j, row in enumerate(table):
+                html += "<tr>\n"
+                if j == 0:
+                    html += "<td rowspan=\"{0}\" "\
+                            "class=\"element_id\">{1}</td>\n".format(
+                        len(self.data_structure_type.flat_data_hierarchy), i)
+                html += "<td class=\"ann_type\">{0}</td>".format(
+                    self.data_structure_type.flat_data_hierarchy[j])
+                for column in row:
+                    html += \
+                        u"<td colspan=\"{0}\" class=\"{2}\">{1}</td>\n".format(
+                            column[1], column[0],
+                            self.data_structure_type.flat_data_hierarchy[j])
+                html += "</tr>\n"
             html += "</table>\n"
-        html += "</body></html>"
+        if html_frame:
+            html += "</body></html>"
         return html
 
-    def _element_as_html(self, elements, hierarchy, html):
-        current_row = -1
+    def _element_as_table(self, elements, hierarchy, table, column):
+        inserted = 0
         for i, t in enumerate(hierarchy):
             if type(t) is list:
                 elements_list = elements[i]
-                for e in elements_list:
-                    html = self._element_as_html(e, t, html)
+                for i, e in enumerate(elements_list):
+                    inserted += self._element_as_table(
+                        e, t, table, column + i + inserted)
+                inserted = inserted + len(elements_list) - 1
+                merge_rows = [ r for r in hierarchy if type(r) is not list]
+                for r in merge_rows:
+                    row = self.data_structure_type.flat_data_hierarchy.index(r)
+                    if len(table[row]) > 0:
+                        table[row][column] = (table[row][column][0], inserted + 1)
+                    else:
+                        table[row] = [(u"", inserted + 1)]
             else:
-                new_row = self.data_structure_type.flat_data_hierarchy.index(t)
-                if new_row != current_row:
-                    if current_row != -1:
-                        html += "</tr>\n"
-                    html += "<tr>\n"
-                html += "<td>" + elements[i]["annotation"] + "</td>\n"
+                row = self.data_structure_type.flat_data_hierarchy.index(t)
+                a = elements[i]["annotation"]
+                if a == "":
+                    a = "&nbsp;"
+                if (column + 1) > len(table[row]):
+                    table[row].append((a, 1))
+                else:
+                    table[row][column] = (a, table[row][column][1])
 
-        return html
+        return inserted
+
 
     ################## old API
 #    def get_next_annotation_id(self):
