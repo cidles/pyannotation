@@ -536,12 +536,15 @@ class AnnotationTreeFilter():
         for i, t in enumerate(hierarchy):
             if type(t) is list:
                 elements_list = elements[i]
+                local_passes = False
                 for i, e in enumerate(elements_list):
                     passes = self._passes_filter(passed, e, t)
-                    if self.boolean_operation == self.AND:
-                        passed = (passed and passes)
-                    else:
-                        passed = (passed or passes)
+                    local_passes = (local_passes or passes)
+
+                if self.boolean_operation == self.AND:
+                    passed = (passed and local_passes)
+                else:
+                    passed = (passed or local_passes)
             else:
                 passes = False
                 if self.filter[t] != "":
