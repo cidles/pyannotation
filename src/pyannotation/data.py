@@ -194,7 +194,7 @@ class DataStructureTypeGraid(DataStructureType):
 
 class DataStructureTypeMorphsynt(DataStructureType):
 
-    name = "MORPHOSYNTACTIC"
+    name = "MORPHSYNT"
 
     data_hierarchy =\
     [ 'utterance',

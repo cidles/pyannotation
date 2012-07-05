@@ -15,6 +15,7 @@ import pyannotation.toolbox.data
 import pyannotation.data
 import pickle
 import regex
+import operator
 
 class AnnotationTree():
 
@@ -26,6 +27,8 @@ class AnnotationTree():
 
         if data_structure_type == pyannotation.data.GRAID:
             self.structure_type_handler = pyannotation.data.DataStructureTypeGraid()
+        elif data_structure_type == pyannotation.data.MORPHSYNT:
+            self.structure_type_handler = pyannotation.data.DataStructureTypeMorphsynt()
 
         self.filters = []
         self.filtered_element_ids = [[]]
@@ -161,7 +164,7 @@ class AnnotationTree():
             if filtered and i not in self.filtered_element_ids[-1]:
                 continue
             html += "<table>\n"
-            table = [list() for _ in range(len(
+            table = [dict() for _ in range(len(
                 self.data_structure_type.flat_data_hierarchy))]
             self._element_as_table(
                 element, self.data_structure_type.data_hierarchy, table, 0)
@@ -174,7 +177,7 @@ class AnnotationTree():
                         len(self.data_structure_type.flat_data_hierarchy), i)
                 html += "<td class=\"ann_type\">{0}</td>".format(
                     self.data_structure_type.flat_data_hierarchy[j])
-                for column in row:
+                for _, column in sorted(row.iteritems(), key=operator.itemgetter(0)):
                     html += \
                         u"<td colspan=\"{0}\" class=\"{2}\">{1}</td>\n".format(
                             column[1], column[0],
@@ -197,19 +200,20 @@ class AnnotationTree():
                 merge_rows = [ r for r in hierarchy if type(r) is not list]
                 for r in merge_rows:
                     row = self.data_structure_type.flat_data_hierarchy.index(r)
-                    if len(table[row]) > 0:
+                    if column in table[row]:
                         table[row][column] = (table[row][column][0], inserted + 1)
                     else:
-                        table[row] = [(u"", inserted + 1)]
+                        table[row][column] = (u"", inserted + 1)
             else:
                 row = self.data_structure_type.flat_data_hierarchy.index(t)
                 a = elements[i]["annotation"]
                 if a == "":
                     a = "&nbsp;"
-                if (column + 1) > len(table[row]):
-                    table[row].append((a, 1))
-                else:
+                #if (column + 1) > len(table[row]):
+                if column in table[row]:
                     table[row][column] = (a, table[row][column][1])
+                else:
+                    table[row][column] = (a, 1)
 
         return inserted
 
