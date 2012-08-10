@@ -294,7 +294,7 @@ class DataStructureTypeGraid(DataStructureType):
     ----------
     `name` : str
         Name of the structure.
-    data_hirerarchy : array
+    data_hirerarchy : array_like
         Structure of the array.
 
     """
@@ -317,7 +317,7 @@ class DataStructureTypeMorphsynt(DataStructureType):
     ----------
     `name` : str
         Name of the structure.
-    data_hirerarchy : array
+    data_hirerarchy : array_like
         Structure of the array.
 
     """
