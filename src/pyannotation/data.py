@@ -6,7 +6,6 @@
 # Author: Peter Bouda <pbouda@cidles.eu>
 # URL: <http://www.cidles.eu/ltll/poio>
 # For license information, see LICENSE.TXT
-
 """This module contains the classes to access annotated data in
 various formats.
 
@@ -32,7 +31,7 @@ class DataStructureTypeNotSupportedError(Exception): pass
 class UnknownAnnotationTypeError(Exception): pass
 
 class AnnotationFileObject(object):
-
+    
     def __init__(self, file_path):
         self.file_path = file_path
 
@@ -48,28 +47,7 @@ class AnnotationFileTierHandler(object):
     pass
 
 class AnnotationFileParser(object):
-    """
-    Interface of the Builders.
-
-    Methods
-    -------
-    __init__(annotation_file_object, annotation_file_tiers)
-        Class's constructor.
-    get_next_annotation_id()
-        Return the next annotation.
-    parse()
-        Interface method.
-    get_file(tree=AnnotationTree)
-        Interface method.
-    remove_annotation_with_id(id_annotation=1)
-        Interface method.
-    def remove_annotations_with_ref(id_ref_ann=1):
-        Interface method.
-    update_prev_annotation_for_annotation(id_annotation=1, id_prev_ann=None):
-        Interface method.
-
-    """
-
+    
     def __init__(self, annotation_file_object, annotation_file_tiers):
         self.lastUsedAnnotationId = 0
 
@@ -94,27 +72,11 @@ class AnnotationFileParser(object):
         pass
 
 class AnnotationFileParserMorphsynt(AnnotationFileParser):
-    """
-    Annotation file parser using Morphsyntax.
-
-    Methods
-    -------
-    __init__()
-        Class's constructor.
-    il_element_for_string(text='Example text.')
-        Return an array of words from a text.
-
-    """
-
+    
     def __init__(self, annotation_file_object, annotation_file_tiers,
                  word_sep = r"[ \n\t\r]+", morpheme_sep = r"[-]",
                  gloss_sep = r"[:]"):
-        """Class's constructor.
-
-        ...
-
-        """
-
+    
         AnnotationFileParser.__init__(self, annotation_file_object, annotation_file_tiers)
         self.WORD_BOUNDARY_PARSE = word_sep
         self.MORPHEME_BOUNDARY_PARSE = morpheme_sep
@@ -122,20 +84,7 @@ class AnnotationFileParserMorphsynt(AnnotationFileParser):
         self.lastUsedAnnotationId = 0
 
     def il_element_for_string(self, text):
-        """Separate the text in words and add them to an array.
-
-        Parameters
-        ----------
-        ann_type : str
-            Value of the field in the data structure hierarchy.
-
-        Returns
-        -------
-        ilElement : array_like
-            An array with the subelements of the text.
-
-        """
-
+    
         arrT = text.split(" ")
         word = arrT[0]
         il = ""
@@ -163,33 +112,13 @@ class AnnotationFileParserMorphsynt(AnnotationFileParser):
 class DataStructureType(object):
     """
     Data structure type constructor.
-
+        
     Attributes
     ----------
-    name : string
+    `name` : str
         Name of the structure.
     data_hirerarchy : array
         Structure of the array.
-
-    Methods
-    -------
-    __init__()
-        Class's constructor.
-    get_siblings_of_type(ann_type='utterance')
-        Return all the siblings of a given type in the hierarchy.
-    get_parents_of_type(ann_type='utterance')
-        Returns all the elements that are above a given type in the type
-        hierarchy.
-    _get_parents_of_type_helper(
-            ann_type='utterance',
-            hierarchy=[ 'utterance', ['word'], 'translation'])
-        Helper function for get_parents_of_type().
-    empty_element()
-        Return the appended list of a certain data hierarchy.
-    _append_list(element='word')
-        Append element values and it's ids to the data structure elements.
-    _flatten_hierarchy_elements(elements=['word1','word2'])
-        Flat the elements appended to a new list of elements.
 
     """
 
@@ -198,9 +127,7 @@ class DataStructureType(object):
     data_hierarchy = [ 'utterance', ['word'], 'translation']
 
     def __init__(self):
-        """Class's constructor.
-
-        ...
+        """Class's constructor.....
 
         """
 
@@ -365,7 +292,7 @@ class DataStructureTypeGraid(DataStructureType):
 
     Attributes
     ----------
-    name : str
+    `name` : str
         Name of the structure.
     data_hirerarchy : array
         Structure of the array.
@@ -388,7 +315,7 @@ class DataStructureTypeMorphsynt(DataStructureType):
 
     Attributes
     ----------
-    name : str
+    `name` : str
         Name of the structure.
     data_hirerarchy : array
         Structure of the array.
