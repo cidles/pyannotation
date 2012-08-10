@@ -1,0 +1,9 @@
+.. codeauthor:: Peter ASD <pbouda@cidles.eu>
+
+===============================
+PyAnnotation Module - `data.py`
+===============================
+   
+.. automodule:: data
+   :members:
+   :private-members:
