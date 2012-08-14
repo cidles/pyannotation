@@ -13,7 +13,7 @@ Welcome to PyAnnotation's documentation!
    :maxdepth: 3
 
    data
-    
+   annotationtree
     
 Indices and tables
 ==================

@@ -313,7 +313,7 @@ class AnnotationTree():
         if len(self.filters) > 0:
             return self.filters[-1]
         else:
-            return AnnotationTreeFilter()
+            return AnnotationTreeFilter(self.data_structure_type)
 
     def update_last_filter(self, filter):
         """Update the last filter added.
@@ -402,9 +402,9 @@ class AnnotationTree():
                     self.data_structure_type.flat_data_hierarchy[j])
                 for _, column in sorted(row.iteritems(), key=operator.itemgetter(0)):
                     html += \
-                        u"<td colspan=\"{0}\" class=\"{2}\">{1}</td>\n".format(
-                            column[1], column[0],
-                            self.data_structure_type.flat_data_hierarchy[j])
+                    u"<td colspan=\"{0}\" class=\"{2}\">{1}</td>\n".format(
+                        column[1], column[0],
+                        self.data_structure_type.flat_data_hierarchy[j])
                 html += "</tr>\n"
             html += "</table>\n"
         if html_frame:
@@ -740,8 +740,8 @@ class AnnotationTreeFilter():
 
         Parameters
         ----------
-        type : str
-            Could be AND or OR
+        element : array_like
+            An array of string values.
 
         Returns
         -------
@@ -858,6 +858,7 @@ class AnnotationTreeFilter():
             An array of string values.
         hirerarchy : array_like
             Structure of the array.
+
         Returns
         -------
         passed : bool
