@@ -279,11 +279,6 @@ class DataStructureType(object):
 
         flat_elements = []
         for e in elements:
-            # Change it - Mané
-            #if type(e) is str or type(e) is unicode:
-            #    flat_elements.append(e)
-            #elif type(e) is list:
-            #    flat_elements.extend(self._flatten_hierarchy_elements(e))
             if type(e) is list:
                 flat_elements.extend(self._flatten_hierarchy_elements(e))
             else:
