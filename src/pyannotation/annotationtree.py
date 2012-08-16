@@ -17,7 +17,7 @@ data.AnnotationFileObject and sub-classes are used
 Wto read and write files.
 """
 
-import data
+from pyannotation import data
 import pickle
 import regex
 import operator
@@ -383,7 +383,7 @@ class AnnotationTree():
                         len(self.data_structure_type.flat_data_hierarchy), i)
                 html += "<td class=\"ann_type\">{0}</td>".format(
                     self.data_structure_type.flat_data_hierarchy[j])
-                for _, column in sorted(row.iteritems(), key=operator.itemgetter(0)):
+                for _, column in sorted(row.items(), key=operator.itemgetter(0)):
                     html += "<td colspan=\"{0}\" class=\"{2}\">{1}</td>\n".format(
                         column[1], column[0],
                         self.data_structure_type.flat_data_hierarchy[j])

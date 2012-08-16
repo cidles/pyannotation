@@ -255,11 +255,11 @@ class DataStructureType(object):
 
         ret = []
         for e in element:
-            if type(e) is str or type(e) is unicode:
-                ret.append({ 'id': None, 'annotation': '' })
-            elif type(e) is list:
+            if type(e) is list:
                 l = self._append_list(e)
                 ret.append([l])
+            else:
+                ret.append({ 'id': None, 'annotation': '' })
         return ret
 
     def _flatten_hierarchy_elements(self, elements):
@@ -279,10 +279,15 @@ class DataStructureType(object):
 
         flat_elements = []
         for e in elements:
-            if type(e) is str or type(e) is unicode:
-                flat_elements.append(e)
-            elif type(e) is list:
+            # Change it - Mané
+            #if type(e) is str or type(e) is unicode:
+            #    flat_elements.append(e)
+            #elif type(e) is list:
+            #    flat_elements.extend(self._flatten_hierarchy_elements(e))
+            if type(e) is list:
                 flat_elements.extend(self._flatten_hierarchy_elements(e))
+            else:
+                flat_elements.append(e)
         return flat_elements
 
 class DataStructureTypeGraid(DataStructureType):

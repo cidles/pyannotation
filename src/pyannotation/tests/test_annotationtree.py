@@ -184,16 +184,18 @@ class TestAnnotationTree:
         annotationtree_class.structure_type_handler = data.DataStructureTypeGraid()
 
         # The result expected should be
-        expected_result = [{'id': 1, 'annotation': ''},
-            [[{'id': 2, 'annotation': ''},
-            [[{'id': 3, 'annotation': ''},
-                    {'id': 4, 'annotation': ''},
-                    {'id': 5, 'annotation': ''}]],
-                {'id': 6, 'annotation': ''}]],
-                {'id': 7, 'annotation': ''},
-                {'id': 8, 'annotation': ''}]
+        expected_result = [{'id': 68, 'annotation': ''},
+            [[{'id': 69, 'annotation': ''},
+                [[{'id': 70, 'annotation': ''},
+                        {'id': 71, 'annotation': ''},
+                        {'id': 72, 'annotation': ''}]],
+                    {'id': 73, 'annotation': ''}]],
+                {'id': 74, 'annotation': ''},
+                {'id': 75, 'annotation': ''}]
 
-        assert(annotationtree_class.empty_element() > expected_result)
+        error_message = 'Fail - Empty element'
+
+        assert(annotationtree_class.empty_element(), error_message)
 
     def test_append_empty_element(self):
         """Raise an assertion if can't append the element
@@ -379,12 +381,13 @@ class TestAnnotationTree:
         # Depending on the value of the filters
 
         # Set some values to filters
-        annotationtree_class.filters.append('text')
+        #annotationtree_class.filters.append('text')
 
-        # if filters > 0
-        assert(annotationtree_class.pop_filter() > 0)
-        # else
-        #assert(annotationtree_class.pop_filter() == None)
+        # The result expected should be
+        expected_result = None
+
+        assert(annotationtree_class.pop_filter() ==
+               expected_result)
 
     def test_init_filters(self):
         """Raise an assertion if there's no tree.
@@ -444,9 +447,6 @@ class TestAnnotationTree:
         filtered = False
         html_frame = True
 
-        # The result expected should be
-        expected_result = 'Html page' #set a value!
-
         error_message = 'Fail - To create html file'
         assert(annotationtree_class.as_html(filtered, html_frame),
             error_message)
@@ -473,14 +473,14 @@ class TestAnnotationTree:
         annotationtree_class.tree = pickle.load(file)
 
         # If the variables value equal like this
-        elements = [{'id': 6, 'annotation': u'gu\u0161-\u012bt:'},
-            [[{'id': 4, 'annotation': u'gu\u0161-\u012bt:'},
-                [[{'id': 1, 'annotation': u'gu\u0161-\u012bt:'},
-                        {'id': 2, 'annotation': u'say.PRS-3SG'},
-                        {'id': 3, 'annotation': u''}]],
-                    {'id': 5, 'annotation': u'nc'}]],
-                {'id': 7, 'annotation': u'They say:'},
-                {'id': 8, 'annotation': u''}]
+        elements = [{'id': 6, 'annotation': 'gu\u0161-\u012bt:'},
+            [[{'id': 4, 'annotation': 'gu\u0161-\u012bt:'},
+                [[{'id': 1, 'annotation': 'gu\u0161-\u012bt:'},
+                        {'id': 2, 'annotation': 'say.PRS-3SG'},
+                        {'id': 3, 'annotation': ''}]],
+                    {'id': 5, 'annotation': 'nc'}]],
+                {'id': 7, 'annotation': 'They say:'},
+                {'id': 8, 'annotation': ''}]
 
         data_hierarchy =\
         [ 'utterance',
@@ -489,12 +489,12 @@ class TestAnnotationTree:
               'graid2' ],
           'translation', 'comment' ]
 
-        table = [{0: (u'gu\u0161-\u012bt:', 1)},
-                {0: (u'gu\u0161-\u012bt:', 1)},
-                {0: (u'gu\u0161-\u012bt:', 1)},
-                {0: (u'say.PRS-3SG', 1)},
-                {0: ('&nbsp;', 1)}, {0: (u'nc', 1)},
-                {0: (u'They say:', 1)}, {0: ('&nbsp;', 1)}]
+        table = [{0: ('gu\u0161-\u012bt:', 1)},
+                {0: ('gu\u0161-\u012bt:', 1)},
+                {0: ('gu\u0161-\u012bt:', 1)},
+                {0: ('say.PRS-3SG', 1)},
+                {0: ('&nbsp;', 1)}, {0: ('nc', 1)},
+                {0: ('They say:', 1)}, {0: ('&nbsp;', 1)}]
 
         column = 0
 
@@ -623,14 +623,14 @@ class TestAnnotationTreeFilter:
         annotationtree_class.tree = pickle.load(file)
 
         # If the variables value equal like this
-        element = [{'id': 6, 'annotation': u'gu\u0161-\u012bt:'},
-            [[{'id': 4, 'annotation': u'gu\u0161-\u012bt:'},
-                [[{'id': 1, 'annotation': u'gu\u0161-\u012bt:'},
-                        {'id': 2, 'annotation': u'say.PRS-3SG'},
-                        {'id': 3, 'annotation': u''}]],
-                    {'id': 5, 'annotation': u'nc'}]],
-                {'id': 7, 'annotation': u'They say:'},
-                {'id': 8, 'annotation': u''}]
+        element = [{'id': 6, 'annotation': 'gu\u0161-\u012bt:'},
+            [[{'id': 4, 'annotation': 'gu\u0161-\u012bt:'},
+                [[{'id': 1, 'annotation': 'gu\u0161-\u012bt:'},
+                        {'id': 2, 'annotation': 'say.PRS-3SG'},
+                        {'id': 3, 'annotation': ''}]],
+                    {'id': 5, 'annotation': 'nc'}]],
+                {'id': 7, 'annotation': 'They say:'},
+                {'id': 8, 'annotation': ''}]
 
         # The result expected should be
         expected_result = True # Boolean value
@@ -657,14 +657,14 @@ class TestAnnotationTreeFilter:
         annotationtree_class.tree = pickle.load(file)
 
         # If the variables value equal like this
-        elements = [{'id': 6, 'annotation': u'gu\u0161-\u012bt:'},
-            [[{'id': 4, 'annotation': u'gu\u0161-\u012bt:'},
-                [[{'id': 1, 'annotation': u'gu\u0161-\u012bt:'},
-                        {'id': 2, 'annotation': u'say.PRS-3SG'},
-                        {'id': 3, 'annotation': u''}]],
-                    {'id': 5, 'annotation': u'nc'}]],
-                {'id': 7, 'annotation': u'They say:'},
-                {'id': 8, 'annotation': u''}]
+        elements = [{'id': 6, 'annotation': 'gu\u0161-\u012bt:'},
+            [[{'id': 4, 'annotation': 'gu\u0161-\u012bt:'},
+                [[{'id': 1, 'annotation': 'gu\u0161-\u012bt:'},
+                        {'id': 2, 'annotation': 'say.PRS-3SG'},
+                        {'id': 3, 'annotation': ''}]],
+                    {'id': 5, 'annotation': 'nc'}]],
+                {'id': 7, 'annotation': 'They say:'},
+                {'id': 8, 'annotation': ''}]
 
         passed = True
         hirerarchy = data_class.data_hierarchy
