@@ -60,7 +60,6 @@
 <span class="c"># Author: Peter Bouda &lt;pbouda@cidles.eu&gt;</span>
 <span class="c"># URL: &lt;http://www.cidles.eu/ltll/poio&gt;</span>
 <span class="c"># For license information, see LICENSE.TXT</span>
-
 <span class="sd">&quot;&quot;&quot;This module contains the classes to access annotated data in</span>
 <span class="sd">various formats.</span>
 
@@ -76,133 +75,70 @@
 <span class="c"># Data structure types</span>
 <span class="p">(</span><span class="n">GLOSS</span><span class="p">,</span> <span class="n">WORDS</span><span class="p">,</span> <span class="n">GRAID</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 
-<div class="viewcode-block" id="UnknownFileFormatError"><a class="viewcode-back" href="../data.html#data.UnknownFileFormatError">[docs]</a><span class="k">class</span> <span class="nc">UnknownFileFormatError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
-<div class="viewcode-block" id="NoFileSpecifiedError"><a class="viewcode-back" href="../data.html#data.NoFileSpecifiedError">[docs]</a><span class="k">class</span> <span class="nc">NoFileSpecifiedError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span>
+<span class="k">class</span> <span class="nc">UnknownFileFormatError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span>
+<span class="k">class</span> <span class="nc">NoFileSpecifiedError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span>
 
-<span class="c"># Data structure types</span></div>
+<span class="c"># Data structure types</span>
 <span class="p">(</span><span class="n">WORDS</span><span class="p">,</span> <span class="n">MORPHSYNT</span><span class="p">,</span> <span class="n">GRAID</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-<div class="viewcode-block" id="UnknownDataStructureTypeError"><a class="viewcode-back" href="../data.html#data.UnknownDataStructureTypeError">[docs]</a><span class="k">class</span> <span class="nc">UnknownDataStructureTypeError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
-<div class="viewcode-block" id="DataStructureTypeNotSupportedError"><a class="viewcode-back" href="../data.html#data.DataStructureTypeNotSupportedError">[docs]</a><span class="k">class</span> <span class="nc">DataStructureTypeNotSupportedError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
-<div class="viewcode-block" id="UnknownAnnotationTypeError"><a class="viewcode-back" href="../data.html#data.UnknownAnnotationTypeError">[docs]</a><span class="k">class</span> <span class="nc">UnknownAnnotationTypeError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span>
-</div>
-<div class="viewcode-block" id="AnnotationFileObject"><a class="viewcode-back" href="../data.html#data.AnnotationFileObject">[docs]</a><span class="k">class</span> <span class="nc">AnnotationFileObject</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Interface of the Builders.</span>
+<span class="k">class</span> <span class="nc">UnknownDataStructureTypeError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span>
+<span class="k">class</span> <span class="nc">DataStructureTypeNotSupportedError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span>
+<span class="k">class</span> <span class="nc">UnknownAnnotationTypeError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span>
 
-<span class="sd">    Methods</span>
-<span class="sd">    -------</span>
-<span class="sd">    __init__(annotation_file_object, annotation_file_tiers)</span>
-<span class="sd">        Class&#39;s constructor.</span>
-<span class="sd">    create_tier_handler()</span>
-<span class="sd">        Return none.</span>
-<span class="sd">    create_parser(type=GRAID)</span>
-<span class="sd">        Set an error to the data structure type.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
+<span class="k">class</span> <span class="nc">AnnotationFileObject</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file_path</span> <span class="o">=</span> <span class="n">file_path</span>
 
-<div class="viewcode-block" id="AnnotationFileObject.create_tier_handler"><a class="viewcode-back" href="../data.html#data.AnnotationFileObject.create_tier_handler">[docs]</a>    <span class="k">def</span> <span class="nf">create_tier_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_tier_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">None</span>
-</div>
-<div class="viewcode-block" id="AnnotationFileObject.create_parser"><a class="viewcode-back" href="../data.html#data.AnnotationFileObject.create_parser">[docs]</a>    <span class="k">def</span> <span class="nf">create_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">create_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
         <span class="k">raise</span><span class="p">(</span>
             <span class="n">DataStructureTypeNotSupportedError</span><span class="p">(</span>
                 <span class="s">&quot;Data structure type {0} not supported&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">)))</span>
-</div></div>
-<div class="viewcode-block" id="AnnotationFileTierHandler"><a class="viewcode-back" href="../data.html#data.AnnotationFileTierHandler">[docs]</a><span class="k">class</span> <span class="nc">AnnotationFileTierHandler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<span class="k">class</span> <span class="nc">AnnotationFileTierHandler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">pass</span>
-</div>
-<div class="viewcode-block" id="AnnotationFileParser"><a class="viewcode-back" href="../data.html#data.AnnotationFileParser">[docs]</a><span class="k">class</span> <span class="nc">AnnotationFileParser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Interface of the Builders.</span>
 
-<span class="sd">    Methods</span>
-<span class="sd">    -------</span>
-<span class="sd">    __init__(annotation_file_object, annotation_file_tiers)</span>
-<span class="sd">        Class&#39;s constructor.</span>
-<span class="sd">    get_next_annotation_id()</span>
-<span class="sd">        Return the next annotation.</span>
-<span class="sd">    parse()</span>
-<span class="sd">        Interface method.</span>
-<span class="sd">    get_file(tree=AnnotationTree)</span>
-<span class="sd">        Interface method.</span>
-<span class="sd">    remove_annotation_with_id(id_annotation=1)</span>
-<span class="sd">        Interface method.</span>
-<span class="sd">    def remove_annotations_with_ref(id_ref_ann=1):</span>
-<span class="sd">        Interface method.</span>
-<span class="sd">    update_prev_annotation_for_annotation(id_annotation=1, id_prev_ann=None):</span>
-<span class="sd">        Interface method.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
+<span class="k">class</span> <span class="nc">AnnotationFileParser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">annotation_file_object</span><span class="p">,</span> <span class="n">annotation_file_tiers</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lastUsedAnnotationId</span> <span class="o">=</span> <span class="mi">0</span>
 
-<div class="viewcode-block" id="AnnotationFileParser.get_next_annotation_id"><a class="viewcode-back" href="../data.html#data.AnnotationFileParser.get_next_annotation_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_next_annotation_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_next_annotation_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_used_annotation_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last_used_annotation_id</span> <span class="o">+=</span>  <span class="mi">1</span>
         <span class="k">return</span> <span class="n">a</span>
-</div>
-<div class="viewcode-block" id="AnnotationFileParser.parse"><a class="viewcode-back" href="../data.html#data.AnnotationFileParser.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
-</div>
-<div class="viewcode-block" id="AnnotationFileParser.get_file"><a class="viewcode-back" href="../data.html#data.AnnotationFileParser.get_file">[docs]</a>    <span class="k">def</span> <span class="nf">get_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">):</span>
-        <span class="k">pass</span>
-</div>
-<div class="viewcode-block" id="AnnotationFileParser.remove_annotation_with_id"><a class="viewcode-back" href="../data.html#data.AnnotationFileParser.remove_annotation_with_id">[docs]</a>    <span class="k">def</span> <span class="nf">remove_annotation_with_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_annotation</span><span class="p">):</span>
-        <span class="k">pass</span>
-</div>
-<div class="viewcode-block" id="AnnotationFileParser.remove_annotations_with_ref"><a class="viewcode-back" href="../data.html#data.AnnotationFileParser.remove_annotations_with_ref">[docs]</a>    <span class="k">def</span> <span class="nf">remove_annotations_with_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_ref_ann</span><span class="p">):</span>
-        <span class="k">pass</span>
-</div>
-<div class="viewcode-block" id="AnnotationFileParser.update_prev_annotation_for_annotation"><a class="viewcode-back" href="../data.html#data.AnnotationFileParser.update_prev_annotation_for_annotation">[docs]</a>    <span class="k">def</span> <span class="nf">update_prev_annotation_for_annotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_annotation</span><span class="p">,</span> <span class="n">id_prev_ann</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="k">pass</span>
-</div></div>
-<div class="viewcode-block" id="AnnotationFileParserMorphsynt"><a class="viewcode-back" href="../data.html#data.AnnotationFileParserMorphsynt">[docs]</a><span class="k">class</span> <span class="nc">AnnotationFileParserMorphsynt</span><span class="p">(</span><span class="n">AnnotationFileParser</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Annotation file parser using Morphsyntax.</span>
 
-<span class="sd">    Methods</span>
-<span class="sd">    -------</span>
-<span class="sd">    __init__()</span>
-<span class="sd">        Class&#39;s constructor.</span>
-<span class="sd">    il_element_for_string(text=&#39;Example text.&#39;)</span>
-<span class="sd">        Return an array of words from a text.</span>
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">get_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">):</span>
+        <span class="k">pass</span>
 
+    <span class="k">def</span> <span class="nf">remove_annotation_with_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_annotation</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">remove_annotations_with_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_ref_ann</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">update_prev_annotation_for_annotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_annotation</span><span class="p">,</span> <span class="n">id_prev_ann</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">AnnotationFileParserMorphsynt</span><span class="p">(</span><span class="n">AnnotationFileParser</span><span class="p">):</span>
+    
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">annotation_file_object</span><span class="p">,</span> <span class="n">annotation_file_tiers</span><span class="p">,</span>
                  <span class="n">word_sep</span> <span class="o">=</span> <span class="s">r&quot;[ \n\t\r]+&quot;</span><span class="p">,</span> <span class="n">morpheme_sep</span> <span class="o">=</span> <span class="s">r&quot;[-]&quot;</span><span class="p">,</span>
                  <span class="n">gloss_sep</span> <span class="o">=</span> <span class="s">r&quot;[:]&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Class&#39;s constructor.</span>
-
-<span class="sd">        ...</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-
+    
         <span class="n">AnnotationFileParser</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">annotation_file_object</span><span class="p">,</span> <span class="n">annotation_file_tiers</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">WORD_BOUNDARY_PARSE</span> <span class="o">=</span> <span class="n">word_sep</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">MORPHEME_BOUNDARY_PARSE</span> <span class="o">=</span> <span class="n">morpheme_sep</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">GLOSS_BOUNDARY_PARSE</span> <span class="o">=</span> <span class="n">gloss_sep</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lastUsedAnnotationId</span> <span class="o">=</span> <span class="mi">0</span>
 
-<div class="viewcode-block" id="AnnotationFileParserMorphsynt.il_element_for_string"><a class="viewcode-back" href="../data.html#data.AnnotationFileParserMorphsynt.il_element_for_string">[docs]</a>    <span class="k">def</span> <span class="nf">il_element_for_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Separate the text in words and add them to an array.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        ann_type : str</span>
-<span class="sd">            Value of the field in the data structure hierarchy.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        ilElement : array_like</span>
-<span class="sd">            An array with the subelements of the text.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-
+    <span class="k">def</span> <span class="nf">il_element_for_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+    
         <span class="n">arrT</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)</span>
         <span class="n">word</span> <span class="o">=</span> <span class="n">arrT</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">il</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
@@ -226,37 +162,17 @@
                 <span class="p">[</span> <span class="s">&quot;a</span><span class="si">%i</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_next_annotation_id</span><span class="p">(),</span> <span class="n">arrIl</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">arrG2</span> <span class="p">])</span>
         <span class="k">return</span> <span class="n">ilElement</span>
 
-</div></div>
+
 <div class="viewcode-block" id="DataStructureType"><a class="viewcode-back" href="../data.html#data.DataStructureType">[docs]</a><span class="k">class</span> <span class="nc">DataStructureType</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Data structure type constructor.</span>
-
+<span class="sd">        </span>
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
-<span class="sd">    name : string</span>
+<span class="sd">    `name` : str</span>
 <span class="sd">        Name of the structure.</span>
 <span class="sd">    data_hirerarchy : array</span>
 <span class="sd">        Structure of the array.</span>
-
-<span class="sd">    Methods</span>
-<span class="sd">    -------</span>
-<span class="sd">    __init__()</span>
-<span class="sd">        Class&#39;s constructor.</span>
-<span class="sd">    get_siblings_of_type(ann_type=&#39;utterance&#39;)</span>
-<span class="sd">        Return all the siblings of a given type in the hierarchy.</span>
-<span class="sd">    get_parents_of_type(ann_type=&#39;utterance&#39;)</span>
-<span class="sd">        Returns all the elements that are above a given type in the type</span>
-<span class="sd">        hierarchy.</span>
-<span class="sd">    _get_parents_of_type_helper(</span>
-<span class="sd">            ann_type=&#39;utterance&#39;,</span>
-<span class="sd">            hierarchy=[ &#39;utterance&#39;, [&#39;word&#39;], &#39;translation&#39;])</span>
-<span class="sd">        Helper function for get_parents_of_type().</span>
-<span class="sd">    empty_element()</span>
-<span class="sd">        Return the appended list of a certain data hierarchy.</span>
-<span class="sd">    _append_list(element=&#39;word&#39;)</span>
-<span class="sd">        Append element values and it&#39;s ids to the data structure elements.</span>
-<span class="sd">    _flatten_hierarchy_elements(elements=[&#39;word1&#39;,&#39;word2&#39;])</span>
-<span class="sd">        Flat the elements appended to a new list of elements.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -264,17 +180,15 @@
 
     <span class="n">data_hierarchy</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&#39;utterance&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;word&#39;</span><span class="p">],</span> <span class="s">&#39;translation&#39;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="DataStructureType.__init__"><a class="viewcode-back" href="../data.html#data.DataStructureType.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Class&#39;s constructor.</span>
-
-<span class="sd">        ...</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Class&#39;s constructor.....</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">flat_data_hierarchy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flatten_hierarchy_elements</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_hierarchy</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nr_of_types</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flat_data_hierarchy</span><span class="p">)</span>
-</div>
+
 <div class="viewcode-block" id="DataStructureType.get_siblings_of_type"><a class="viewcode-back" href="../data.html#data.DataStructureType.get_siblings_of_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_siblings_of_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ann_type</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return all the siblings of a given type in the hierarchy</span>
 <span class="sd">        including the given type itself.</span>
@@ -432,9 +346,9 @@
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
-<span class="sd">    name : str</span>
+<span class="sd">    `name` : str</span>
 <span class="sd">        Name of the structure.</span>
-<span class="sd">    data_hirerarchy : array</span>
+<span class="sd">    data_hirerarchy : array_like</span>
 <span class="sd">        Structure of the array.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -455,9 +369,9 @@
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
-<span class="sd">    name : str</span>
+<span class="sd">    `name` : str</span>
 <span class="sd">        Name of the structure.</span>
-<span class="sd">    data_hirerarchy : array</span>
+<span class="sd">    data_hirerarchy : array_like</span>
 <span class="sd">        Structure of the array.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>

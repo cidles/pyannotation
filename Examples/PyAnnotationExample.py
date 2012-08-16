@@ -1,5 +1,16 @@
 # -*- coding: utf-8 -*-
-# (C) 2012 copyright by Ant�nio Lopes, CIDLeS
+#
+# Poio Tools for Linguists
+#
+# Copyright (C) 2009-2012 Poio Project
+# Author: António Lopes <alopes@cidles.eu>
+# URL: <http://www.cidles.eu/ltll/poio>
+# For license information, see LICENSE.TXT
+"""This module contains a simple example 
+how to use the PyAnnotation and retrieve 
+some of the elements of an 
+AnnotationTree.
+"""
 
 from pyannotation import annotationtree
 from pyannotation import data

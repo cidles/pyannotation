@@ -25,12 +25,13 @@ import operator
 
 class AnnotationTree():
     """
-    AnnotationTree tree-like structure constructor.
+    AnnotationTree tree-like structure
+    constructor.
 
     """
 
     def __init__(self, data_structure_type):
-        """Class's constructor
+        """Class's constructor.....
 
         """
 
@@ -39,10 +40,10 @@ class AnnotationTree():
 
         self.data_structure_type = data_structure_type
 
-        if data_structure_type == pyannotation.data.GRAID:
-            self.structure_type_handler = pyannotation.data.DataStructureTypeGraid()
-        elif data_structure_type == pyannotation.data.MORPHSYNT:
-            self.structure_type_handler = pyannotation.data.DataStructureTypeMorphsynt()
+        if data_structure_type == data.GRAID:
+            self.structure_type_handler = data.DataStructureTypeGraid()
+        elif data_structure_type == data.MORPHSYNT:
+            self.structure_type_handler = data.DataStructureTypeMorphsynt()
 
         self.filters = []
         self.filtered_element_ids = [[]]
@@ -119,21 +120,21 @@ class AnnotationTree():
         file.close()
 
         #    def load_from_file(self, file_path):
-    #         if self.file_type == pyannotation.data.EAF:
-    #             self.annotation_file_object = pyannotation.elan.data.EafAnnotationFileObject(file_path)
-    #         elif self.file_type == pyannotation.data.EAFFROMTOOLBOX:
-    #             self.annotation_file_object = pyannotation.elan.data.EafFromToolboxAnnotationFileObject(file_path)
-    #         elif self.file_type == pyannotation.data.TOOLBOX:
-    #             self.annotation_file_object = pyannotation.toolbox.data.ToolboxAnnotationFileObject(file_path)
+    #         if self.file_type == data.EAF:
+    #             self.annotation_file_object = elan.data.EafAnnotationFileObject(file_path)
+    #         elif self.file_type == data.EAFFROMTOOLBOX:
+    #             self.annotation_file_object = elan.data.EafFromToolboxAnnotationFileObject(file_path)
+    #         elif self.file_type == data.TOOLBOX:
+    #             self.annotation_file_object = toolbox.data.ToolboxAnnotationFileObject(file_path)
     #         else:
-    #             raise(pyannotation.data.UnknownFileFormatException("File format {0} not supported.".format(self.file_type)))
+    #             raise(data.UnknownFileFormatException("File format {0} not supported.".format(self.file_type)))
 
     #    def parse(self):
     #        if self.parser:
     #            self.tree = self.parser.parse()
     #            self.reset_filters()
     #        else:
-    #            raise(pyannotation.data.NoFileSpecifiedError())
+    #            raise(data.NoFileSpecifiedError())
 
     def append_element(self, element, update_ids = False):
         """Append an element to the annotation tree.
@@ -313,7 +314,7 @@ class AnnotationTree():
         if len(self.filters) > 0:
             return self.filters[-1]
         else:
-            return AnnotationTreeFilter()
+            return AnnotationTreeFilter(self.data_structure_type)
 
     def update_last_filter(self, filter):
         """Update the last filter added.
@@ -642,8 +643,8 @@ class AnnotationTreeFilter():
         """
 
         self.data_structure_type = data_structure_type
-        if data_structure_type == pyannotation.data.GRAID:
-            self.structure_type_handler = pyannotation.data.DataStructureTypeGraid()
+        if data_structure_type == data.GRAID:
+            self.structure_type_handler = data.DataStructureTypeGraid()
 
         self.filter = dict()
         for e in self.data_structure_type.flat_data_hierarchy:
@@ -740,8 +741,8 @@ class AnnotationTreeFilter():
 
         Parameters
         ----------
-        type : str
-            Could be AND or OR
+        element : array_like
+            An array of string values.
 
         Returns
         -------
@@ -751,7 +752,7 @@ class AnnotationTreeFilter():
         See also
         --------
         _passes_filter
-        
+
         """
 
         #        utterance_match = False
@@ -858,6 +859,7 @@ class AnnotationTreeFilter():
             An array of string values.
         hirerarchy : array_like
             Structure of the array.
+
         Returns
         -------
         passed : bool
@@ -896,4 +898,3 @@ class AnnotationTreeFilter():
                     passed = (passed or passes)
 
         return passed
-
