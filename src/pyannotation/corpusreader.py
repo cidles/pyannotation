@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-# (C) 2009 copyright by Peter Bouda
+#
+# Poio Tools for Linguists
+#
+# Copyright (C) 2009-2012 Poio Project
+# Author: Peter Bouda <pbouda@cidles.eu>
+# URL: <http://www.cidles.eu/ltll/poio>
+# For license information, see LICENSE.TXT
 """
 CorpusReader, GlossCorpusReader, PosCorpusReader implement a
 part of the corpus reader API described in the Natural
@@ -11,11 +17,8 @@ Deprecated. Replaced by classes in module corpus.
 
 import os, glob
 import re
-from pyannotation.elan.data import EafAnnotationFileObject
-from pyannotation.elan.data import EafFromToolboxAnnotationFileObject
-from pyannotation.toolbox.data import ToolboxAnnotationFileObject
-from pyannotation.annotationtree import AnnotationTree
-import pyannotation
+
+import data
 
 # interlinear types: WORDS means "no interlinear"
 
@@ -38,11 +41,11 @@ class CorpusReader(object):
 
     def addFile(self, filepath, filetype, locale = None, participant = None, utterancetierTypes = None, wordtierTypes = None, translationtierTypes = None, morphemetierTypes = None, glosstierTypes = None, postierTypes = None):
         annotationFileObject = None
-        if filetype == pyannotation.data.EAF:
+        if filetype == data.EAF:
             annotationFileObject = EafAnnotationFileObject(filepath)
-        elif filetype == pyannotation.data.EAFFROMTOOLBOX:
+        elif filetype == data.EAFFROMTOOLBOX:
             annotationFileObject = EafFromToolboxAnnotationFileObject(filepath)
-        elif filetype == pyannotation.data.TOOLBOX:
+        elif filetype == data.TOOLBOX:
             annotationFileObject = ToolboxAnnotationFileObject(filepath)
         if annotationFileObject != None:
             annotationTierHandler = annotationFileObject.create_tier_handler()
@@ -55,8 +58,8 @@ class CorpusReader(object):
 
 
             annotationTree = AnnotationTree(filepath, self.interlineartype)
-            
-            if filetype == pyannotation.data.EAF:
+
+            if filetype == data.EAF:
                 # Setting the tier types for the parse
                 if utterancetierTypes != None:
                     annotationTierHandler.setUtterancetierType(utterancetierTypes)

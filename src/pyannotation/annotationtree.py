@@ -384,8 +384,7 @@ class AnnotationTree():
                 html += "<td class=\"ann_type\">{0}</td>".format(
                     self.data_structure_type.flat_data_hierarchy[j])
                 for _, column in sorted(row.iteritems(), key=operator.itemgetter(0)):
-                    html += \
-                    u"<td colspan=\"{0}\" class=\"{2}\">{1}</td>\n".format(
+                    html += "<td colspan=\"{0}\" class=\"{2}\">{1}</td>\n".format(
                         column[1], column[0],
                         self.data_structure_type.flat_data_hierarchy[j])
                 html += "</tr>\n"
@@ -429,7 +428,7 @@ class AnnotationTree():
                     if column in table[row]:
                         table[row][column] = (table[row][column][0], inserted + 1)
                     else:
-                        table[row][column] = (u"", inserted + 1)
+                        table[row][column] = ("", inserted + 1)
             else:
                 row = self.data_structure_type.flat_data_hierarchy.index(t)
                 a = elements[i]["annotation"]

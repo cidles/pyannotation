@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-# (C) 2012 copyright by Peter Bouda
+#
+# Poio Tools for Linguists
+#
+# Copyright (C) 2009-2012 Poio Project
+# Author: Peter Bouda <pbouda@cidles.eu>
+# URL: <http://www.cidles.eu/ltll/poio>
+# For license information, see LICENSE.TXT
 """
 The corpus module contains classes to handle collections of work items
 (currently: annotation trees; later: annotation graphs). It connects those
@@ -9,7 +15,8 @@ queries and updates. The queries and updates are handle by the classes of the
 work items.
 """
 
-import pyannotation
+import data
+import annotationtree
 
 class CorpusTrees():
 
@@ -18,10 +25,10 @@ class CorpusTrees():
         self.data_structure_type = data_structure_type
 
     def add_item(self, filepath, filetype):
-        if filetype == pyannotation.data.TREEPICKLE:
-            annotation_tree = pyannotation.annotationtree.AnnotationTree(self.data_structure_type)
+        if filetype == data.TREEPICKLE:
+            annotation_tree = annotationtree.AnnotationTree(self.data_structure_type)
             annotation_tree.load_tree_from_pickle(filepath)
             annotation_tree.init_filters()
             self.items.append( (filepath, annotation_tree) )
         else:
-            raise pyannotation.data.UnknownFileFormatError()
+            raise data.UnknownFileFormatError()
