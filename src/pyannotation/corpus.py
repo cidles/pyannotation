@@ -15,6 +15,8 @@ queries and updates. The queries and updates are handle by the classes of the
 work items.
 """
 
+from __future__ import unicode_literals
+
 import data
 import annotationtree
 

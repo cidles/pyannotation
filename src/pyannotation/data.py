@@ -13,6 +13,8 @@ The parsing is done by Builder classes for each file type, i.e.
 Elan's .eaf files, Kura's .xml file, Toolbox's .txt files etc.
 """
 
+from __future__ import unicode_literals
+
 import re as regex
 
 # File types

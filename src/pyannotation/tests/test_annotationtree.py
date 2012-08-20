@@ -18,12 +18,10 @@ Note: The tests made on this use Data Structure
 Graid.
 """
 
-from pyannotation import annotationtree
 from pyannotation import data
+from pyannotation import annotationtree
 
 import pickle
-
-# Do the setUp later. search about it and teardown to...
 
 # Initialize the DataStructureType class
 data_class = data.DataStructureTypeGraid()

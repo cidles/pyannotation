@@ -17,7 +17,9 @@ data.AnnotationFileObject and sub-classes are used
 Wto read and write files.
 """
 
-from pyannotation import data
+from __future__ import unicode_literals
+
+import data
 import pickle
 import regex
 import operator

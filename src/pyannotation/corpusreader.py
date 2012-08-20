@@ -15,6 +15,8 @@ http://nltk.googlecode.com/svn/trunk/doc/howto/corpus.html
 Deprecated. Replaced by classes in module corpus.
 """
 
+from __future__ import unicode_literals
+
 import os, glob
 import re
 
