@@ -20,7 +20,7 @@ from __future__ import unicode_literals
 import os, glob
 import re
 
-import data
+from pyannotation import data
 
 # interlinear types: WORDS means "no interlinear"
 

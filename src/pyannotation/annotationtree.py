@@ -18,8 +18,8 @@ Wto read and write files.
 """
 
 from __future__ import unicode_literals
+from pyannotation import data
 
-import data
 import pickle
 import regex
 import operator
