@@ -19,7 +19,7 @@ Wto read and write files.
 
 from __future__ import unicode_literals
 
-import data
+import pyannotation.data as data
 import pickle
 import regex
 import operator

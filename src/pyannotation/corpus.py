@@ -17,8 +17,8 @@ work items.
 
 from __future__ import unicode_literals
 
-import data
-import annotationtree
+import pyannotation.data as data
+import pyannotation.annotationtree as annotationtree
 
 class CorpusTrees():
 
